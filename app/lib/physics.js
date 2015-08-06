@@ -128,7 +128,7 @@ BoundingBox.prototype.intersects = function(bounding_box) {
   //X intersects
   if (this.x1 < bounding_box.x2 && this.x2 > bounding_box.x1) {
     //Y intersects
-    if (this.y1 < bounding_box.y2 && this.y2 > bounding_box.y1) {
+    if (this.y1 > bounding_box.y2 && this.y2 < bounding_box.y1) {
       return true;
     }
   }

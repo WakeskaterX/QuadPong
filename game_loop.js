@@ -22,7 +22,6 @@ function Game(id_no){
   var ball = {};
 
   //Customizations
-  var ball_speed = config.game_settings.ball_speed;
   var gameloop_delta = config.system_settings.gameLoopDelta;
   var lastLoopTime = +Date.now();
 
@@ -34,6 +33,7 @@ function Game(id_no){
     movePlayerPaddles(delta);
     moveBall(delta);
     checkCollisions();
+    ball.checkBounds();
     //Finish Game Loop and Set timeout
     var end = +Date.now();
     var time_elapsed = end-start;
@@ -41,12 +41,11 @@ function Game(id_no){
       console.log("WARNING: This loop took "+time_elapsed+" ms");
     }
     self.emit('update', {
-      ball: ball.position,
-      p1: players.p1.position,
-      p2: players.p2.position,
-      p3: players.p3.position,
-      p4: players.p4.position,
-      p1box: players.p1.bounding_box
+      ball: ball,
+      p1: players.p1,
+      p2: players.p2,
+      p3: players.p3,
+      p4: players.p4
     });
     setTimeout(function() { gameLoop(); }, Math.max(gameloop_delta-time_elapsed, 1));
   }
@@ -84,14 +83,11 @@ function Game(id_no){
 
   function checkCollisions() {
     for (var key in players) {
-      if (players.hasOwnProperty(key)) {
-        if (players[key].intersects(ball)) {
-          console.log("BALL HIT PADDLE OF PLAYER: "+key);
-          if (key === "p1" || key === "p3") {
-            ball.bounce_y();
-          } else {
-            ball.bounce_x();
-          }
+      if (players[key].intersects(ball)) {
+        if (key === "p1" || key === "p3") {
+          ball.bounce_y();
+        } else {
+          ball.bounce_x();
         }
       }
     }

@@ -16,6 +16,7 @@ var GameObject = function(name, position, bounding_box) {
 GameObject.constructor = GameObject;
 
 GameObject.prototype.intersects = function(other_object) {
+  //console.log('Checking Intersection!', this.bounding_box, other_object.bounding_box);
   return this.bounding_box.intersects(other_object.bounding_box);
 }
 
@@ -40,7 +41,6 @@ Ball.prototype.checkBounds = function(){
     //Hit Player 2's wall
     this.reset();
   }
-  //
   if (this.position.y < -50 && this.velocity.y < 0) {
     //Hit Player 1's wall
     this.reset();

@@ -1,12 +1,12 @@
 {
   "game_settings": {
     "paddle_width": 12,
-    "paddle_depth": 8,
+    "paddle_depth": 6,
     "paddle_speed": 8,
     "ball_size": 4,
     "ball_speed": 12
   },
   "system_settings": {
-    "gameLoopDelta": 30
+    "gameLoopDelta": 15
   }
 }
