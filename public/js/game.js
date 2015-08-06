@@ -7,6 +7,13 @@ var GameObjects = {
 }
 
 var debug = false;
+var states= {
+  'NONE': 'NONE',
+  'MENU': 'MENU',
+  'GAME': 'GAME'
+}
+
+var STATE = states.NONE;
 
 var canvas, ctx;
 
@@ -21,10 +28,25 @@ window.onload = function init() {
   ctx.fillStyle = 'white';
 };
 
-function updateGame() {
+function updateCanvas() {
+  switch(STATE) {
+    case states.NONE:
+      return;
+    case states.MENU:
+      drawMenu();
+    case states.GAME:
+      drawGame();
+  }
+}
+
+function drawGame() {
   clearCanvas();
   drawBall();
   drawPlayers();
+}
+
+function drawMenu() {
+  
 }
 
 function drawBall() {

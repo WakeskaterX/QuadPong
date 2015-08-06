@@ -1,8 +1,8 @@
 var fs = require('fs');
 var config = JSON.parse(fs.readFileSync('./app/config/settings.json'));
-var classes = require('./app/lib/classes.js');
+var classes = require('./lib/classes.js');
 var EventEmitter = require('events').EventEmitter;
-var Physics = require('./app/lib/physics.js');
+var Physics = require('./lib/physics.js');
 var Vector2 = Physics.Vector2;
 var Ball = classes.Ball;
 var Paddle = classes.Paddle;
@@ -11,7 +11,6 @@ var Paddle = classes.Paddle;
 function Game(id_no){
   EventEmitter.call(this);
   var self = this;
-  var game_id = id_no;
   var status = 0;
   var players = {
     "p1": null,
