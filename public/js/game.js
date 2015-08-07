@@ -13,29 +13,39 @@ var states= {
   'GAME': 'GAME'
 }
 
-var STATE = states.NONE;
+var STATE = states.MENU;
 
 var canvas, ctx;
+var canvas_width = 600,
+    canvas_height = 600;
 
 var size_mult = 6;
 var ball_width = 4;
 var paddle_width = 12;
 var paddle_depth = 6;
+var player_num = 1;
+
+var keypress_listener = null;
 
 window.onload = function init() {
-  canvas = document.getElementById("game");
+  canvas = createHiDPICanvas(canvas_width, canvas_height);
+  document.getElementById("game").appendChild(canvas);
   ctx = canvas.getContext("2d");
   ctx.fillStyle = 'white';
+  keypress_listener = new window.keypress.Listener();
+  registerKeypress();
 };
 
 function updateCanvas() {
   switch(STATE) {
     case states.NONE:
-      return;
+      break;
     case states.MENU:
       drawMenu();
+      break;
     case states.GAME:
       drawGame();
+      break;
   }
 }
 
@@ -46,7 +56,12 @@ function drawGame() {
 }
 
 function drawMenu() {
-  
+  clearCanvas();
+  ctx.font = "small-caps 800 64px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("QuadPong",canvas_width/2,200);
+  ctx.font = "small-caps 400 24px Arial";
+  ctx.fillText("Press Enter to Create or Join an Existing Game",canvas_width/2,400);
 }
 
 function drawBall() {
@@ -73,4 +88,91 @@ function convert(x, y) {
 
 function clearCanvas() {
   ctx.clearRect(0,0,100 * size_mult,100 * size_mult);
+}
+
+
+
+//KEYBOARD CONTROLS
+function registerKeypress() {
+  keypress_listener.register_combo({
+    "keys": "up",
+    "on_keydown": function() {
+      playerActionGenerator("U");
+    },
+    "prevent_repeat": true,
+    "on_keyup": function() {
+      playerAction("N");
+    }
+  });
+  keypress_listener.register_combo({
+    "keys": "down",
+    "on_keydown": function() {
+      playerActionGenerator("D");
+    },
+    "prevent_repeat": true,
+    "on_keyup": function() {
+      playerAction("N");
+    }
+  });
+  keypress_listener.register_combo({
+    "keys": "left",
+    "on_keydown": function() {
+      playerActionGenerator("L");
+    },
+    "prevent_repeat": true,
+    "on_keyup": function() {
+      playerAction("N");
+    }
+  });
+  keypress_listener.register_combo({
+    "keys": "right",
+    "on_keydown": function() {
+      playerActionGenerator("R");
+    },
+    "prevent_repeat": true,
+    "on_keyup": function() {
+      playerAction("N");
+    }
+  });
+  keypress_listener.register_combo({
+    "keys": "enter",
+    "on_keydown": function() {
+      if (STATE === states.MENU) {
+        STATE = states.GAME;
+        start_game();
+      }
+    },
+    "prevent_repeat": true
+  });
+}
+
+function playerActionGenerator(direction) {
+  switch(player_num) {
+    case 1:
+      if (direction === "L") playerAction("L");
+      if (direction === "R") playerAction("R");
+      break;
+    case 2:
+      if (direction === "U") playerAction("R");
+      if (direction === "D") playerAction("L");
+      break;
+    case 3:
+      if (direction === "L") playerAction("R");
+      if (direction === "R") playerAction("L");
+      break;
+    case 4:
+      if (direction === "D") playerAction("R");
+      if (direction === "U") playerAction("L");
+      break;
+  }
+}
+
+function playerAction(dir) {
+  var data = {
+    "player_id": player_id,
+    "game_id": game_id,
+    "action": dir
+  };
+  console.log("Emitting Action "+dir);
+  socket.emit("action", data);
 }

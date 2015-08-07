@@ -37,16 +37,15 @@ function handleSocket(socket) {
    * takes a player ID and assigns that player to the new game
    * @param {string} player_id - the player ID to create a game for
    */
-  socket.on('start_game', function(player_id) {
+  socket.on('start_game', function(data) {
     console.log('Starting New Game');
     var game_id = helper.createGameID();
     var game = new Game(game_id);
     console.log('Created Game with ID: '+game_id);
-    game.gameSetup(player_id);
+    game.gameSetup(data.player_id);
     game.addComputer(helper.createComputerID+'0');
     game.addComputer(helper.createComputerID+'1');
     game.addComputer(helper.createComputerID+'2');
-    game.getPlayer(player_id).is_computer = true; //REMOVE LATER
     game.gameStart();
     games[game_id] = game;
     socket.emit('started_game', {'game_id':game_id});
@@ -63,7 +62,11 @@ function handleSocket(socket) {
    * @param {string} data.action - the action to update the player to
    */
   socket.on('action', function(data) {
-    
+    if (games.hasOwnProperty(data.game_id)) {
+      games[data.game_id].updatePlayerAction(data.player_id, data.action);
+    } else {
+      socket.emit('server_error', "INVALID GAME ID");
+    }
   })
 
   /**
@@ -72,8 +75,8 @@ function handleSocket(socket) {
    * TODO: Wrap error to hide details and display a nicer message to client
    */
   socket.on('error', function(error) {
-    console.log(error.stack);
-    socket.emit('error', error);
+    console.error(error);
+    socket.emit('server_error', 'An Error Occurred!');
   });
 }
 

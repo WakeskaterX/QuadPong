@@ -94,10 +94,8 @@ function Game(id_no){
 
   function getPlayer(player_id) {
     for (var key in players) {
-      if (players.hasOwnProperty(key)) {
-        if (players[key].playerID === player_id) {
-          return players[key];
-        }
+      if (players[key].playerID === player_id) {
+        return players[key];
       }
     }
     console.log("NO PLAYER FOUND!");
@@ -112,7 +110,7 @@ function Game(id_no){
     }
   }
 
-  this.getPlayer = function(player_id) {
+  this.getPlayerByID = function(player_id) {
     return getPlayer(player_id);
   }
 
@@ -120,7 +118,7 @@ function Game(id_no){
     var pNum = getEmptySlot();
     console.log('Got Empty Slot #: '+pNum);
     if (pNum !== 0) {
-      players["p"+pNum] = new Paddle(player_id, pNum);
+      players["p"+pNum] = new Paddle(player_id, pNum, false);
     } else {
       throw new Error("Player Could not be added to the game, the game is full!");
     }
@@ -130,8 +128,7 @@ function Game(id_no){
     var pNum = getEmptySlot();
     console.log('Got Empty Slot For Computer #: '+pNum);
     if (pNum !== 0) {
-      var comp_player = new Paddle(player_id, pNum);
-      comp_player.is_computer = true;
+      var comp_player = new Paddle(player_id, pNum, true);
       players["p"+pNum] = comp_player;
     } else {
       throw new Error("Player Could not be added to the game, the game is full!");

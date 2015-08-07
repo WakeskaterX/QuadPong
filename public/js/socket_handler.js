@@ -2,10 +2,10 @@ var socket = io();
 var player_id = localStorage["player_id"] || null;
 var game_id = localStorage["game_id"] || null;
 
-socket.on('connection', function(){
+socket.on('connect', function(){
   var playerData = {
-    player_id: player_id,
-    game_id: game_id
+    "player_id": player_id,
+    "game_id": game_id
   }
   socket.emit('new_player', playerData);
 });
@@ -30,8 +30,7 @@ socket.on('reconnect',function(data){
 
 socket.on('started_game', function(data) {
   game_id = data.game_id;
-  console.log('Game ID: '+game_id);
-  STATE = states.GAME;
+  console.log('Game Started with ID: '+game_id);
   save_data();
 });
 
