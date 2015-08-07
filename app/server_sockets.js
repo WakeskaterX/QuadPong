@@ -19,10 +19,20 @@ function handleSocket(socket) {
     //Otherwise create new playerID and send that - if we have a gameID
     //and it's a valid game ID that is in progress, reconnect to that game
     //and send a reconnection emit
+    if (players.indexOf(data.player_id) >= 0 && games.hasOwnProperty(data.game_id)) {
+      if (games[data.game_id].hasPlayer(data.player_id)) {
+        console.log('Player Reconnecting...');
+        socket.emit('reconnect', data);
+        games[data.game_id].on('update', function(data){
+          socket.emit('update', data);
+        });
+        return;
+      }
+    }
     var player_id = helper.createPlayerID(players);
     console.log('A user connected! ID No: '+player_id);
     socket.emit('player_credentials', {"player_id": player_id});
-  })
+  });
 
   /**
    * When a Player Disconnects
@@ -48,6 +58,7 @@ function handleSocket(socket) {
     game.addComputer(helper.createComputerID+'2');
     game.gameStart();
     games[game_id] = game;
+    players.push(data.player_id);
     socket.emit('started_game', {'game_id':game_id});
     games[game_id].on('update', function(data){
       socket.emit('update', data);

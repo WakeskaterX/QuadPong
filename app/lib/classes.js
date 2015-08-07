@@ -67,6 +67,7 @@ var Paddle = function (player_id, player_num, is_comp) {
   var starting_location = getStartingLocation(player_num);
   var bbox = getPlayerBoundingBox(starting_location, player_num);
   GameObject.call(this, "Paddle", starting_location, bbox);
+  this.player_life = config.game_settings.player_max_life;
   this.paddle_width = config.game_settings.paddle_width;
   this.playerID = player_id;
   this.playerNum = player_num;

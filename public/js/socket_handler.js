@@ -17,7 +17,6 @@ socket.on('player_credentials', function(data){
 
 socket.on('update',function(data){
   GameObjects = data;
-  //console.log(data.p1box);
   updateCanvas();
 });
 
