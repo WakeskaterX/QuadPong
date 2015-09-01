@@ -20,10 +20,12 @@ var canvas_width = 600,
     canvas_height = 600;
 
 var size_mult = 6;
-var ball_width = 4;
-var paddle_width = 12;
-var paddle_depth = 6;
 var player_num = 1;
+var game_settings = {
+  ball_size: 4,
+  paddle_width: 12,
+  paddle_depth: 6
+};
 
 var keypress_listener = null;
 
@@ -66,7 +68,7 @@ function drawMenu() {
 
 function drawBall() {
   var ball_coords = convert(GameObjects.ball.position.x, GameObjects.ball.position.y);
-  ctx.fillRect(ball_coords.x - 4, ball_coords.y - 4, 8, 8);
+  ctx.fillRect(ball_coords.x - game_settings.ball_size/2 * size_mult, ball_coords.y - game_settings.ball_size/2 * size_mult, game_settings.ball_size * size_mult, game_settings.ball_size * size_mult);
 }
 
 function drawPlayers() {
@@ -74,10 +76,10 @@ function drawPlayers() {
   var p2c = convert(GameObjects.p2.position.x, GameObjects.p2.position.y);
   var p3c = convert(GameObjects.p3.position.x, GameObjects.p3.position.y); 
   var p4c = convert(GameObjects.p4.position.x, GameObjects.p4.position.y);
-  ctx.fillRect(p1c.x - (paddle_width/2) * size_mult, p1c.y - (paddle_depth/2) * size_mult, paddle_width * size_mult, paddle_depth * size_mult);
-  ctx.fillRect(p2c.x - (paddle_depth/2) * size_mult, p2c.y - (paddle_width/2) * size_mult, paddle_depth * size_mult, paddle_width * size_mult);
-  ctx.fillRect(p3c.x - (paddle_width/2) * size_mult, p3c.y - (paddle_depth/2) * size_mult, paddle_width * size_mult, paddle_depth * size_mult);
-  ctx.fillRect(p4c.x - (paddle_depth/2) * size_mult, p4c.y - (paddle_width/2) * size_mult, paddle_depth * size_mult, paddle_width * size_mult);
+  ctx.fillRect(p1c.x - (game_settings.paddle_width/2) * size_mult, p1c.y - (game_settings.paddle_depth/2) * size_mult, game_settings.paddle_width * size_mult, game_settings.paddle_depth * size_mult);
+  ctx.fillRect(p2c.x - (game_settings.paddle_depth/2) * size_mult, p2c.y - (game_settings.paddle_width/2) * size_mult, game_settings.paddle_depth * size_mult, game_settings.paddle_width * size_mult);
+  ctx.fillRect(p3c.x - (game_settings.paddle_width/2) * size_mult, p3c.y - (game_settings.paddle_depth/2) * size_mult, game_settings.paddle_width * size_mult, game_settings.paddle_depth * size_mult);
+  ctx.fillRect(p4c.x - (game_settings.paddle_depth/2) * size_mult, p4c.y - (game_settings.paddle_width/2) * size_mult, game_settings.paddle_depth * size_mult, game_settings.paddle_width * size_mult);
 }
 
 function convert(x, y) {

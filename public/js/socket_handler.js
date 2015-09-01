@@ -33,6 +33,10 @@ socket.on('started_game', function(data) {
   save_data();
 });
 
+socket.on('game_settings', function(data) {
+  game_settings = data;
+})
+
 function start_game(){
   socket.emit('start_game', {'player_id': player_id});
 }

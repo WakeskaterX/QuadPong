@@ -1,7 +1,9 @@
 var helper = require('./lib/helper.js');
 var games = {};
 var players = [];
+var fs = require('fs');
 var Game = require('./game_loop.js');
+var config = JSON.parse(fs.readFileSync('./app/config/settings.json'));
 
 function handleSocket(socket) {
   console.log('New Socket Connection: '+socket.id);
@@ -60,6 +62,7 @@ function handleSocket(socket) {
     games[game_id] = game;
     players.push(data.player_id);
     socket.emit('started_game', {'game_id':game_id});
+    socket.emit('game_settings', config.game_settings);
     games[game_id].on('update', function(data){
       socket.emit('update', data);
     });

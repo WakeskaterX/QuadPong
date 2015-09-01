@@ -1,10 +1,10 @@
 {
   "game_settings": {
     "paddle_width": 12,
-    "paddle_depth": 6,
+    "paddle_depth": 4,
     "paddle_speed": 16,
-    "ball_size": 4,
-    "ball_speed": 20,
+    "ball_size": 2,
+    "ball_speed": 22,
     "player_max_life": 10
   },
   "system_settings": {
