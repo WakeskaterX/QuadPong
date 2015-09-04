@@ -81,9 +81,11 @@ Ball.prototype.bounce_against = function(game_obj) {
     this.colliding = true;
     this.colliding_with = game_obj;
     var normal = game_obj.normal_vector.copy().normalize();
-    console.log(normal.toString());
-    console.log("Bounce event: \n Initial Velocity: "+this.velocity.toString()+"\n Bounce Velocity: "+this.velocity.copy().reflect(normal).toString());
     this.velocity.reflect(normal);
+    var additional_velocity = this.position.copy().subtract(game_obj.position).scalarMultiply(config.game_settings.paddle_velocity_multiplier);
+    var initial_velocity = this.velocity.copy();
+    var orig_mag = initial_velocity.getMagnitude();
+    this.velocity = initial_velocity.add(additional_velocity).normalize().setMagnitude(orig_mag);
   }
 }
 

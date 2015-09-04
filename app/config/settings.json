@@ -5,7 +5,8 @@
     "paddle_speed": 16,
     "ball_size": 2,
     "ball_speed": 22,
-    "player_max_life": 10
+    "player_max_life": 10,
+    "paddle_velocity_multiplier": 4
   },
   "system_settings": {
     "gameLoopDelta": 15

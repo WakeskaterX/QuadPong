@@ -56,4 +56,17 @@ describe('Physics Unit Tests', function() {
     assert(vector_copy.y === 0);
     done();
   });
+
+  it('should let you set the magnitude and direction of the vector', function(done) {
+    var vector_copy_left = left_unit_vector.copy();
+    var vector_copy_angle = angle_vector.copy();
+    vector_copy_left.setMagnitude(5).setDirection(45);
+    vector_copy_angle.setMagnitude(1).setDirection(0);
+    console.log(vector_copy_left.getMagnitude());
+    assert(Math.abs(vector_copy_left.getMagnitude() - 5) <= .01);
+    assert(vector_copy_left.getDirection() === 45);
+    assert(vector_copy_angle.getMagnitude() === 1);
+    assert(vector_copy_angle.getDirection() === 0);
+    done();
+  })
 });

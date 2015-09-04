@@ -103,6 +103,20 @@ Vector2.prototype.getDirection = function() {
   return getDirectionFromVector(this);
 }
 
+Vector2.prototype.setMagnitude = function(magnitude) {
+  var temp_vector = getVectorFromDirection(this.getDirection(), magnitude);
+  this.x = temp_vector.x;
+  this.y = temp_vector.y;
+  return this;
+}
+
+Vector2.prototype.setDirection = function(direction) {
+  var temp_vector = getVectorFromDirection(direction, this.getMagnitude());
+  this.x = temp_vector.x;
+  this.y = temp_vector.y;
+  return this;
+}
+
 Vector2.prototype.rotateDegrees = function(degrees) {
   var dir = getDirectionFromVector(this);
   var mag = getMagnitudeFromVector(this);
