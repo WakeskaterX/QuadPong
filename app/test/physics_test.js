@@ -1,28 +1,59 @@
-//Regular test - not mocha
-
+//Mocha Tests
 var Physics = require('../lib/physics.js');
-var Vector2 = Physics.Vector2;
 
-var positive_vector = new Vector2(1, 0);
-var positive_vector2 = new Vector2(0, 1);
+var assert = require("assert"),
+  should = require("should");
 
-console.log('\nPositive Vector: ');
-console.log(positive_vector);
+describe('Physics Unit Tests', function() {
+  //Declare a bunch of vectors for testing
+  var right_unit_vector = new Physics.Vector2(1,0);
+  var left_unit_vector = new Physics.Vector2(-1,0);
+  var up_unit_vector = new Physics.Vector2(0,1);
+  var down_unit_vector = new Physics.Vector2(0,-1);
 
-var ball = {position: new Vector2(-1,-5)};
+  var angle_vector = new Physics.Vector2(3,3);
 
-//console.log('\nBall Position: ');
-//console.log(ball.position);
+  it('creates a Vector2 Object when instantiated', function(done) {
+    assert(right_unit_vector.x === 1);
+    assert(right_unit_vector.y === 0);
+    assert(right_unit_vector instanceof Physics.Vector2);
+    assert(angle_vector.x === 3);
+    done();
+  });
 
-var movement_vector = positive_vector.copy();
-var movement_vector2 = positive_vector2.copy();
-movement_vector.multiply_mask(ball.position).normalize();
-console.log(movement_vector);
-console.log(positive_vector);
+  it('provides functions for magnitude and direction', function(done) {
+    assert(right_unit_vector.getMagnitude() === 1);
+    assert(right_unit_vector.getDirection() === 0);
+    assert(left_unit_vector.getDirection() === 180);
+    assert(up_unit_vector.getDirection() === 90);
+    assert(down_unit_vector.getMagnitude() === 1);
+    done();
+  });
 
-console.log(movement_vector.getDirection());
-console.log(positive_vector.getDirection());
+  it('creates a non-referenced copy with the copy command', function(done) {
+    var new_right_vector = right_unit_vector.copy();
+    assert(new_right_vector.equals(right_unit_vector));
+    new_right_vector.x = 5;
+    assert(!new_right_vector.equals(right_unit_vector));
+    done();
+  });
 
+  it('should have add and subtract functions for vectors', function(done) {
+    var vector_copy = right_unit_vector.copy();
+    vector_copy.add(new Physics.Vector2(3,4));
+    assert(vector_copy.x === 4);
+    assert(vector_copy.y === 4);
+    vector_copy.subtract(new Physics.Vector2(1,2));
+    assert(vector_copy.x === 3);
+    assert(vector_copy.y === 2);
+    done();
+  });
 
-
-process.exit(1);
+  it('should allow you to scalar multiply a vector', function(done) {
+    var vector_copy = left_unit_vector.copy();
+    vector_copy.scalarMultiply(2);
+    assert(vector_copy.x === -2);
+    assert(vector_copy.y === 0);
+    done();
+  });
+});

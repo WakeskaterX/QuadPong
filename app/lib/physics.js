@@ -44,9 +44,9 @@ function Vector2(x, y) {
   this.y = y;
 }
 
-Vector2.constructor = Vector2;
+Vector2.prototype.constructor = Vector2;
 
-Vector2.prototype.scalar_multiply = function(multiplier) {
+Vector2.prototype.scalarMultiply = function(multiplier) {
   this.x *= multiplier;
   this.y *= multiplier;
   return this;
@@ -57,7 +57,7 @@ Vector2.prototype.scaleTo = function(multiplier) {
 }
 
 // vector x *= vector2.x - used for masks (vector2: {0,1})
-Vector2.prototype.multiply_mask = function(vector2) {
+Vector2.prototype.multiplyMask = function(vector2) {
   this.x *= vector2.x;
   this.y *= vector2.y;
   return this;
@@ -73,6 +73,10 @@ Vector2.prototype.subtract = function(vector2) {
   this.x -= vector2.x;
   this.y -= vector2.y;
   return this;
+}
+
+Vector2.prototype.equals = function(vector2) {
+  return this.x === vector2.x && this.y === vector2.y;
 }
 
 Vector2.prototype.absoluteValue = function() {
@@ -97,6 +101,29 @@ Vector2.prototype.getMagnitude = function() {
 
 Vector2.prototype.getDirection = function() {
   return getDirectionFromVector(this);
+}
+
+Vector2.prototype.rotateDegrees = function(degrees) {
+  var dir = getDirectionFromVector(this);
+  var mag = getMagnitudeFromVector(this);
+  return getVectorFromDirection(dir+degrees, mag);
+}
+
+//This function reflects the vector (as in a bounce against a wall) - just reflects x and y values if they are not zero
+Vector2.prototype.reflect = function(normal_vector) {
+  var x_val = normal_vector.x < 0 ? normal_vector.x : -normal_vector.x;
+  var y_val = normal_vector.y < 0 ? normal_vector.y : -normal_vector.y;
+  if (x_val) {
+    this.x *= x_val;
+  }
+  if (y_val) {
+    this.y *=  y_val;
+  }
+  return this;
+}
+
+Vector2.prototype.toString = function() {
+  return "{x: "+this.x+", y: "+this.y+"}";
 }
 
 /**

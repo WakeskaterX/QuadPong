@@ -83,11 +83,7 @@ function Game(id_no){
   function checkCollisions() {
     for (var key in players) {
       if (players[key].intersects(ball)) {
-        if (key === "p1" || key === "p3") {
-          ball.bounce_y();
-        } else {
-          ball.bounce_x();
-        }
+        ball.bounce_against(players[key]);
       }
     }
   }

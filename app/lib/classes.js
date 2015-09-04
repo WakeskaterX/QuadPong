@@ -1,5 +1,5 @@
 var Physics = require('./physics.js'),
-    Math2 = require('./math2.js'),
+    math_extensions = require('./math_extension.js'),
     Vector2 = Physics.Vector2,
     BoundingBox = Physics.BoundingBox,
     fs = require('fs'),
@@ -23,6 +23,8 @@ GameObject.prototype.intersects = function(other_object) {
 var Ball = function(position) {
   var ball_size = config.game_settings.ball_size;
   GameObject.call(this, "Ball", position, new BoundingBox(position, ball_size, ball_size));
+  this.colliding = false;
+  this.colliding_with = null;
 }
 
 Ball.prototype = Object.create(GameObject.prototype);
@@ -31,6 +33,15 @@ Ball.prototype.constructor = Ball;
 Ball.prototype.updatePosition = function(dt) {
   this.position.add(this.velocity.scaleTo(dt/1000));
   this.bounding_box.update(this.position);
+  //If we are not colliding with anything anymore
+  if (this.colliding_with !== null && this.colliding) {
+    if (!this.intersects(this.colliding_with)) {
+      this.colliding_with = null;
+      this.colliding = false;
+    }
+  } else if (this.colliding_with === null && this.colliding) {
+    this.colliding = false;
+  }
 }
 
 Ball.prototype.checkBounds = function(){
@@ -63,6 +74,19 @@ Ball.prototype.bounce_y = function() {
   this.velocity.y *= -1;
 }
 
+//obj must be a game object
+Ball.prototype.bounce_against = function(game_obj) {
+  //determine game_object normal we're bouncing against,
+  if (!this.colliding) {
+    this.colliding = true;
+    this.colliding_with = game_obj;
+    var normal = game_obj.normal_vector.copy().normalize();
+    console.log(normal.toString());
+    console.log("Bounce event: \n Initial Velocity: "+this.velocity.toString()+"\n Bounce Velocity: "+this.velocity.copy().reflect(normal).toString());
+    this.velocity.reflect(normal);
+  }
+}
+
 var Paddle = function (player_id, player_num, is_comp) {
   var starting_location = getStartingLocation(player_num);
   var bbox = getPlayerBoundingBox(starting_location, player_num);
@@ -74,6 +98,7 @@ var Paddle = function (player_id, player_num, is_comp) {
   this.action = "N"; //L, R, or N
   this.is_computer = is_comp || false; //default to false
   this.positive_vector = getPositiveVectorDirection(this.playerNum);
+  this.normal_vector = this.positive_vector.copy().rotateDegrees(90);
 }
 
 Paddle.prototype = Object.create(GameObject.prototype);
@@ -91,9 +116,9 @@ Paddle.prototype.updatePosition = function(dt) {
   }
   //Clamp to boundries
   if (this.playerNum == 1 || this.playerNum == 3) {
-    this.position.x = Math2.clamp(-50 + this.paddle_width/2, 50 - this.paddle_width/2, this.position.x);
+    this.position.x = Math.clamp(-50 + this.paddle_width/2, 50 - this.paddle_width/2, this.position.x);
   } else {
-    this.position.y = Math2.clamp(-50 + this.paddle_width/2, 50 - this.paddle_width/2, this.position.y);
+    this.position.y = Math.clamp(-50 + this.paddle_width/2, 50 - this.paddle_width/2, this.position.y);
   }
   this.bounding_box.update(this.position);
 }
@@ -101,7 +126,7 @@ Paddle.prototype.updatePosition = function(dt) {
 Paddle.prototype.computerAction = function(ball) {
   if (this.is_computer) {
     var movement_vector = ball.position.copy();
-    movement_vector.subtract(this.position).multiply_mask(this.positive_vector.copy().absoluteValue()).normalize();
+    movement_vector.subtract(this.position).multiplyMask(this.positive_vector.copy().absoluteValue()).normalize();
     if (movement_vector.getDirection() === this.positive_vector.getDirection()) {
       this.action = 'R';
     } else if (Math.abs(movement_vector.getDirection() - this.positive_vector.getDirection()) === 180) {
