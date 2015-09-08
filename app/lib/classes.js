@@ -25,6 +25,7 @@ var Ball = function(position) {
   GameObject.call(this, "Ball", position, new BoundingBox(position, ball_size, ball_size));
   this.colliding = false;
   this.colliding_with = null;
+  this.game = null; //Game Object
 }
 
 Ball.prototype = Object.create(GameObject.prototype);
@@ -45,24 +46,44 @@ Ball.prototype.updatePosition = function(dt) {
 }
 
 Ball.prototype.checkBounds = function(){
+  var player_score;
   if (this.position.x < -50 && this.velocity.x < 0) {
     //Hit Player 4's wall
-    this.reset();
+    player_score = 'p4';
   } else if (this.position.x > 50 && this.velocity.x > 0) {
     //Hit Player 2's wall
-    this.reset();
-  }
-  if (this.position.y < -50 && this.velocity.y < 0) {
+    player_score = 'p2';
+  } else if (this.position.y < -50 && this.velocity.y < 0) {
     //Hit Player 1's wall
-    this.reset();
+    player_score = 'p1';
   } else if (this.position.y > 50 && this.velocity.y > 0) {
     //Hit Player 3's wall
+    player_score = 'p3';
+  } else {
+    return;
+  }
+  if (this.game.isPlayerActive(player_score)) {
+    //Score and reset
+    this.game.emit('point',player_score);
     this.reset();
+  } else {
+    //Bounce off empty walls
+    if (player_score === 'p1' || player_score === 'p3') {
+      this.bounce_y();
+    } else {
+      this.bounce_x();
+    }
   }
 }
 
 Ball.prototype.reset = function(){
+  var self = this;
   this.position = new Vector2(0, 0);
+  this.velocity = new Vector2(0, 0);
+  setTimeout(function(){ self.start_velocity(); }, config.game_settings.reset_timer);
+}
+
+Ball.prototype.start_velocity = function() {
   this.velocity = Physics.getVectorFromDirection(Math.random() * 360, config.game_settings.ball_speed);
 }
 
@@ -91,9 +112,9 @@ Ball.prototype.bounce_against = function(game_obj) {
 
 var Paddle = function (player_id, player_num, is_comp) {
   var starting_location = getStartingLocation(player_num);
-  var bbox = getPlayerBoundingBox(starting_location, player_num);
+  var bbox = getPlayerBoundingBox(starting_location, player_num, config.game_settings.paddle_width);
   GameObject.call(this, "Paddle", starting_location, bbox);
-  this.player_life = config.game_settings.player_max_life;
+  this.life = config.game_settings.player_max_life;
   this.paddle_width = config.game_settings.paddle_width;
   this.playerID = player_id;
   this.playerNum = player_num;
@@ -101,6 +122,7 @@ var Paddle = function (player_id, player_num, is_comp) {
   this.is_computer = is_comp || false; //default to false
   this.positive_vector = getPositiveVectorDirection(this.playerNum);
   this.normal_vector = this.positive_vector.copy().rotateDegrees(90);
+  this.active = true;
 }
 
 Paddle.prototype = Object.create(GameObject.prototype);
@@ -123,6 +145,14 @@ Paddle.prototype.updatePosition = function(dt) {
     this.position.y = Math.clamp(-50 + this.paddle_width/2, 50 - this.paddle_width/2, this.position.y);
   }
   this.bounding_box.update(this.position);
+}
+
+Paddle.prototype.updateWidth = function() {
+  var max_width = config.game_settings.paddle_width;
+  this.bounding_box = getPlayerBoundingBox(this.position, this.playerNum, max_width * (this.life / config.game_settings.player_max_life));
+  if (this.life <= 0) {
+    this.active = false;
+  }
 }
 
 Paddle.prototype.computerAction = function(ball) {
@@ -153,8 +183,7 @@ function getStartingLocation(player_num) {
   }
 }
 
-function getPlayerBoundingBox(center, player_num) {
-  var paddle_width = config.game_settings.paddle_width;
+function getPlayerBoundingBox(center, player_num, paddle_width) {
   var paddle_depth = config.game_settings.paddle_depth;
   switch(player_num) {
     case 1:
@@ -165,6 +194,7 @@ function getPlayerBoundingBox(center, player_num) {
       return new BoundingBox(center, paddle_depth, paddle_width);
   }
 }
+
 
 //The Positive Vector Direction corresponds to moving Right 
 function getPositiveVectorDirection(p_num) {

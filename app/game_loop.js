@@ -82,7 +82,7 @@ function Game(id_no){
 
   function checkCollisions() {
     for (var key in players) {
-      if (players[key].intersects(ball)) {
+      if (players[key].intersects(ball) && players[key].active) {
         ball.bounce_against(players[key]);
       }
     }
@@ -104,6 +104,10 @@ function Game(id_no){
     } else {
       return false;
     }
+  }
+
+  this.isPlayerActive = function(player_num) {
+    return players[player_num].active;
   }
 
   this.getPlayerByID = function(player_id) {
@@ -139,6 +143,7 @@ function Game(id_no){
   this.gameSetup = function(first_player_id) {
     status = 1;
     ball = new Ball(new Vector2(0,0));
+    ball.game = this;
     this.addPlayer(first_player_id);
   }
 
@@ -167,6 +172,13 @@ function Game(id_no){
     lastLoopTime = +Date.now();
     gameLoop();
   }
+
+  this.on('point', function(player) {
+    if (players[player].active) {
+      players[player].life -= 1;
+      players[player].updateWidth();
+    }
+  });
 }
 
 Game.prototype = Object.create(EventEmitter.prototype);

@@ -72,14 +72,13 @@ function drawBall() {
 }
 
 function drawPlayers() {
-  var p1c = convert(GameObjects.p1.position.x, GameObjects.p1.position.y);
-  var p2c = convert(GameObjects.p2.position.x, GameObjects.p2.position.y);
-  var p3c = convert(GameObjects.p3.position.x, GameObjects.p3.position.y); 
-  var p4c = convert(GameObjects.p4.position.x, GameObjects.p4.position.y);
-  ctx.fillRect(p1c.x - (game_settings.paddle_width/2) * size_mult, p1c.y - (game_settings.paddle_depth/2) * size_mult, game_settings.paddle_width * size_mult, game_settings.paddle_depth * size_mult);
-  ctx.fillRect(p2c.x - (game_settings.paddle_depth/2) * size_mult, p2c.y - (game_settings.paddle_width/2) * size_mult, game_settings.paddle_depth * size_mult, game_settings.paddle_width * size_mult);
-  ctx.fillRect(p3c.x - (game_settings.paddle_width/2) * size_mult, p3c.y - (game_settings.paddle_depth/2) * size_mult, game_settings.paddle_width * size_mult, game_settings.paddle_depth * size_mult);
-  ctx.fillRect(p4c.x - (game_settings.paddle_depth/2) * size_mult, p4c.y - (game_settings.paddle_width/2) * size_mult, game_settings.paddle_depth * size_mult, game_settings.paddle_width * size_mult);
+  var players = ["p1", "p2", "p3", "p4"];
+  for (var i = 0; i < players.length; i++) {
+    var obj = GameObjects[players[i]];
+    var start_vect = convert(obj.bounding_box.x1, obj.bounding_box.y1);
+    var end_vect = convert(obj.bounding_box.x2, obj.bounding_box.y2);
+    ctx.fillRect(start_vect.x, start_vect.y, end_vect.x-start_vect.x, end_vect.y-start_vect.y);
+  }
 }
 
 function convert(x, y) {

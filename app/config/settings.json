@@ -1,12 +1,13 @@
 {
   "game_settings": {
-    "paddle_width": 12,
+    "paddle_width": 8,
     "paddle_depth": 4,
-    "paddle_speed": 16,
+    "paddle_speed": 32,
     "ball_size": 2,
-    "ball_speed": 22,
-    "player_max_life": 10,
-    "paddle_velocity_multiplier": 4
+    "ball_speed": 40,
+    "player_max_life": 2,
+    "paddle_velocity_multiplier": 8,
+    "reset_timer": 1000
   },
   "system_settings": {
     "gameLoopDelta": 15
