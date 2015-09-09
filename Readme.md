@@ -27,3 +27,5 @@ QuadPong is a four player online pong game, played out on the server & rendered 
 *Notes*:
 
 At the moment the game does not support multiplayer, that's coming next.  When you start up a new game you will play against 3 computer controlled players.
+
+Also, you can edit the game settings in app/config/settings.json to fiddle around with the gameplay.  It'll change on the client side too.
