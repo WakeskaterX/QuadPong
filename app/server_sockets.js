@@ -98,7 +98,19 @@ function flushGames () {
   games = {};
 }
 
+function listGames () {
+  var g = [];
+  for (var id in games) {
+    var item = {};
+    item.game_id = id;
+    item.number_slots = games[id].numberSlotsAvailable();
+    g.push(item);
+  }
+  return g;
+}
+
 module.exports = {
   handleSocket: handleSocket,
-  flushGames: flushGames
+  flushGames: flushGames,
+  listGames: listGames
 }

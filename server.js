@@ -8,6 +8,10 @@ app.get('/', function(req, res) {
   res.redirect('/index.html');
 });
 
+app.get('/games', function(req, res) {
+  res.send(SocketHandler.listGames());
+})
+
 app.use(express.static('public'));
 
 io.on('connection', function(socket){

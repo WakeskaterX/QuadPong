@@ -173,6 +173,15 @@ function Game(id_no){
     gameLoop();
   }
 
+  //Reveals the open player slots
+  this.numberSlotsAvailable = function() {
+    var slots = 0;
+    for (var player_id in players) {
+      if (!players[player_id]) slots++;
+    }
+    return slots;
+  }
+
   this.on('point', function(player) {
     if (players[player].active) {
       players[player].life -= 1;
