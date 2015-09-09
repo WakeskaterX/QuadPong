@@ -2,8 +2,7 @@
 
 ###Description:
 
-QuadPong is a four player online pong game, controlled entirely by the server.  The purpose of the project is to practice server side architecture,
-physics and vector mathematics by making a simple multiplayer game with rooms, etc.
+QuadPong is a four player online pong game, played out on the server & rendered on the client.  The purpose of the project is to practice server side architecture, client synchronization, physics and vector mathematics by making a simple multiplayer game with rooms, etc.
 
 ###Run the Game:
 
