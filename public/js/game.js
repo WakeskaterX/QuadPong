@@ -1,16 +1,14 @@
 var GameObjects = {
   ball: {position: {x: 0, y: 0}},
-  p1: {position: {x: 0, y: -50}},
-  p2: {position: {x: 50, y: 0}},
-  p3: {position: {x: 0, y: 50}},
-  p4: {position: {x: -50, y: 0}}
 }
 
 var debug = false;
 var states= {
   'NONE': 'NONE',
   'MENU': 'MENU',
-  'GAME': 'GAME'
+  'GAME': 'GAME',
+  'LOBBY': 'LOBBY',
+  'WAITING': 'WAITING'
 }
 
 var STATE = states.MENU;
@@ -48,6 +46,13 @@ function updateCanvas() {
     case states.GAME:
       drawGame();
       break;
+    case states.LOBBY:
+      drawLobby();
+      break;
+    case states.WAITING:
+      drawGame();
+      drawWaiting();
+      break;
   }
 }
 
@@ -66,6 +71,11 @@ function drawMenu() {
   ctx.fillText("Press Enter to Create or Join an Existing Game",canvas_width/2,400);
 }
 
+//Draws the open games and players
+function drawLobby() {
+  
+}
+
 function drawBall() {
   var ball_coords = convert(GameObjects.ball.position.x, GameObjects.ball.position.y);
   ctx.fillRect(ball_coords.x - game_settings.ball_size/2 * size_mult, ball_coords.y - game_settings.ball_size/2 * size_mult, game_settings.ball_size * size_mult, game_settings.ball_size * size_mult);
@@ -75,10 +85,18 @@ function drawPlayers() {
   var players = ["p1", "p2", "p3", "p4"];
   for (var i = 0; i < players.length; i++) {
     var obj = GameObjects[players[i]];
-    var start_vect = convert(obj.bounding_box.x1, obj.bounding_box.y1);
-    var end_vect = convert(obj.bounding_box.x2, obj.bounding_box.y2);
-    ctx.fillRect(start_vect.x, start_vect.y, end_vect.x-start_vect.x, end_vect.y-start_vect.y);
+    if (obj) {
+      var start_vect = convert(obj.bounding_box.x1, obj.bounding_box.y1);
+      var end_vect = convert(obj.bounding_box.x2, obj.bounding_box.y2);
+      ctx.fillRect(start_vect.x, start_vect.y, end_vect.x-start_vect.x, end_vect.y-start_vect.y);
+    }
   }
+}
+
+function drawWaiting() {
+  ctx.font = "small-caps 800 48px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Waiting for Players...",canvas_width/2, canvas_height/2-200);
 }
 
 function convert(x, y) {
@@ -139,8 +157,7 @@ function registerKeypress() {
     "keys": "enter",
     "on_keydown": function() {
       if (STATE === states.MENU) {
-        STATE = states.GAME;
-        start_game();
+        create_game();
       }
     },
     "prevent_repeat": true

@@ -15,7 +15,7 @@ app.get('/games', function(req, res) {
 app.use(express.static('public'));
 
 io.on('connection', function(socket){
-  SocketHandler.handleSocket(socket);
+  SocketHandler.handleSocket(io, socket);
 });
 
 http.listen(3000, function() {

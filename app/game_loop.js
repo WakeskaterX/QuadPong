@@ -11,6 +11,7 @@ var Paddle = classes.Paddle;
 function Game(id_no){
   EventEmitter.call(this);
   var self = this;
+  this.id = id_no; //accessible ID
   var status = 0;
   var players = {
     "p1": null,

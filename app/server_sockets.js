@@ -5,8 +5,8 @@ var fs = require('fs');
 var Game = require('./game_loop.js');
 var config = JSON.parse(fs.readFileSync('./app/config/settings.json'));
 
-function handleSocket(socket) {
-  console.log('New Socket Connection: '+socket.id);
+function handleSocket(io, socket) {
+  console.log('New Socket Connection: ' + socket.id);
 
   /**
    * When client sends a new player request after joining
@@ -16,7 +16,7 @@ function handleSocket(socket) {
    * @param {string} [data.player_id]
    * @param {string} [data.game_id] use this to reconnect to a game
    */
-  socket.on('new_player', function(data){
+  socket.on('new_player', function (data) {
     //Check Player ID, if it exists in our players, return that
     //Otherwise create new playerID and send that - if we have a gameID
     //and it's a valid game ID that is in progress, reconnect to that game
@@ -24,48 +24,120 @@ function handleSocket(socket) {
     if (players.indexOf(data.player_id) >= 0 && games.hasOwnProperty(data.game_id)) {
       if (games[data.game_id].hasPlayer(data.player_id)) {
         console.log('Player Reconnecting...');
+        var game = games[data.game_id];
+        socket.join(gameRoom(game.id));
         socket.emit('reconnect', data);
-        games[data.game_id].on('update', function(data){
-          socket.emit('update', data);
+        game.on('update', function (data) {
+          io.to(gameRoom(game.id)).emit('update', data);
         });
         return;
       }
     }
     var player_id = helper.createPlayerID(players);
-    console.log('A user connected! ID No: '+player_id);
-    socket.emit('player_credentials', {"player_id": player_id});
+    console.log('A user connected! ID No: ' + player_id);
+    socket.emit('player_credentials', { "player_id": player_id });
   });
 
   /**
    * When a Player Disconnects
    * TODO: Set players action to 'N'?
    */
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function () {
     console.log('A user disconnected!');
+  });
+
+  /**
+   * When a player leaves a game, remove them from the socket room
+   */
+  socket.on('leave_game', function(data) {
+    //TODO:  Remove player from socket room and emit a leave event -- this happens automatically
   });
 
   /**
    * Start up a new game
    * takes a player ID and assigns that player to the new game
-   * @param {string} player_id - the player ID to create a game for
+   * @param {string} data.player_id - the player ID to create a game for
    */
-  socket.on('start_game', function(data) {
-    console.log('Starting New Game');
+  socket.on('start_game', function (data) {
+    var game_id = data.game_id;
+    var game = games[game_id];
+    if (game) {
+      console.log('Starting Game: ' + game_id);
+      game.gameStart();
+      io.to(gameRoom(game.id)).emit('started_game', { 'game_id': game_id });
+      game.on('update', function (data) {
+        io.to(gameRoom(game.id)).emit('update', data);
+      });
+    } else {
+      console.log('Error: INVALID GAME ID: ' + game_id);
+      socket.emit('server_error', 'Invalid Game ID Specified');
+    }
+  });
+
+  /**
+   * Join an existing game with slots
+   * Takes a player_id and game_id and if the game has space, allows the player to join the game
+   * @param {string} data.player_id
+   * @param {string} data.game_id
+   */
+  socket.on('join_game', function (data) {
+    var game_id = data.game_id;
+    var player_id = data.player_id;
+    var game = games[game_id];
+    if (game) {
+      //Get open slot, set player to that slot, emit joined game event
+      try {
+        game.addPlayer(player_id);
+        socket.join(gameRoom(game.id));
+        socket.emit('game_settings', config.game_settings);
+        io.to(gameRoom(game.id)).emit('added_player', {game_id: game_id});
+        console.log('Added Player '+player_id+' to Game: '+game_id);
+      } catch (e) {
+        console.log(e);
+        io.to(gameRoom(game.id)).emit('game_full', { 'game_id': game_id });
+      }
+    } else {
+      socket.emit('server_error', 'Invalid Game ID');
+    }
+  });
+
+  /**
+   * Add computer player to existing game
+   * Takes a game_id and adds a computer player
+   * @param {string} data.game_id
+   */
+  socket.on('add_computer_player', function(data) {
+    var game_id = data.game_id;
+    var game = games[game_id];
+    if (game) {
+      try {
+        game.addComputer(helper.createComputerID());
+        io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id });
+        console.log('Added Computer Player to Game: '+game_id);
+      } catch (e) {
+        console.log(e);
+        socket.emit('game_full', { 'game_id': game_id });
+      }
+    } else {
+      socket.emit('server_error', 'Invalid Game ID');
+    }
+  });
+
+  /**
+   * Create a brand new game
+   * Takes a player ID and creates a new game with that player as player 1
+   * @param {string} data.player_id
+   */
+  socket.on('create_game', function (data) {
     var game_id = helper.createGameID();
     var game = new Game(game_id);
-    console.log('Created Game with ID: '+game_id);
-    game.gameSetup(data.player_id);
-    game.addComputer(helper.createComputerID+'0');
-    game.addComputer(helper.createComputerID+'1');
-    game.addComputer(helper.createComputerID+'2');
-    game.gameStart();
     games[game_id] = game;
+    console.log('Created New Game with ID: ' + game_id);
     players.push(data.player_id);
-    socket.emit('started_game', {'game_id':game_id});
+    game.gameSetup(data.player_id);
     socket.emit('game_settings', config.game_settings);
-    games[game_id].on('update', function(data){
-      socket.emit('update', data);
-    });
+    socket.emit('created_game', { 'game_id': game_id });
+    socket.join(gameRoom(game.id));
   });
 
   /**
@@ -75,9 +147,11 @@ function handleSocket(socket) {
    * @param {string} data.game_id - the ID of the game to update
    * @param {string} data.action - the action to update the player to
    */
-  socket.on('action', function(data) {
-    if (games.hasOwnProperty(data.game_id)) {
-      games[data.game_id].updatePlayerAction(data.player_id, data.action);
+  socket.on('action', function (data) {
+    var game_id = data.game_id;
+    var game = games[game_id];
+    if (game) {
+      game.updatePlayerAction(data.player_id, data.action);
     } else {
       socket.emit('server_error', "INVALID GAME ID");
     }
@@ -88,17 +162,17 @@ function handleSocket(socket) {
    * Logs the stack and emits the error to the client
    * TODO: Wrap error to hide details and display a nicer message to client
    */
-  socket.on('error', function(error) {
+  socket.on('error', function (error) {
     console.error(error);
     socket.emit('server_error', 'An Error Occurred!');
   });
 }
 
-function flushGames () {
+function flushGames() {
   games = {};
 }
 
-function listGames () {
+function listGames() {
   var g = [];
   for (var id in games) {
     var item = {};
@@ -107,6 +181,10 @@ function listGames () {
     g.push(item);
   }
   return g;
+}
+
+function gameRoom(game_id) {
+  return 'game_'+game_id;
 }
 
 module.exports = {
