@@ -3,20 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>QuadPong Demo</title>
+  <script src="/js/bundle.js"></script>
   <script src="/js/keypress.js"></script>
-  <script src="/js/canvas_helper.js"></script>
-  <script src="/js/game.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/socket_handler.js"></script>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
   <div id="game">
     
   </div>
-  <div id="players">
-    
+  <div id="buttons">
+    <input type="button" onclick="start_game();" value="start game"><input type="button" onclick="add_computer_to_game();" value="add computer">
   </div>
+  <div id="players">
+    <table>
+      <thead>
+        <tr><th>Player</th><th>Type</th><th>Life Remaining</th><th>Is You?</th></tr>
+      </thead>
+      <tbody>
+        
+      </tbody>
+    </table>
+  </div>
+  <script src="/js/canvas_helper.js"></script>
+  <script src="/js/game.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket_handler.js"></script>
+  <script src="/js/jquery.js"></script>
   <script>
     setInterval(updateCanvas, 100);
   </script>

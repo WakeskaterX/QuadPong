@@ -13,7 +13,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm run build-browserify",
+    "build-browserify": "browserify -r ./app/lib/math_extension.js > ./public/js/bundle.js"
   },
   "repository": {
     "type": "git",

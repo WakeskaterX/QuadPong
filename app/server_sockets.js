@@ -81,20 +81,33 @@ function handleSocket(io, socket) {
    * @param {string} data.game_id
    */
   socket.on('join_game', function (data) {
-    var game_id = data.game_id;
+    var game_id = findEmptyGame();
+    if (!game_id) {
+      socket.emit('no_games')
+      return;
+    }
     var player_id = data.player_id;
     var game = games[game_id];
     if (game) {
       //Get open slot, set player to that slot, emit joined game event
       try {
-        game.addPlayer(player_id);
-        socket.join(gameRoom(game.id));
+        socket.join(gameRoom(game_id));
         socket.emit('game_settings', config.game_settings);
-        io.to(gameRoom(game.id)).emit('added_player', {game_id: game_id});
-        console.log('Added Player '+player_id+' to Game: '+game_id);
+        var players = game.getAllPlayers();
+        var game_players = [];
+        for (var pN in players) {
+          var p = players[pN];
+          if (p) {
+            var t = p.is_computer ? "Computer" : "Human";
+            game_players.push({player_num: p.playerNum, type: t, player_life: p.life});
+          }
+        }
+        var player_num = game.addPlayer(player_id);
+        socket.emit('joined_game', {'game_id': game_id, 'player_num': player_num, 'players': game_players });
+        io.to(gameRoom(game_id)).emit('added_player', { game_id: game_id, player_num: player_num });
       } catch (e) {
         console.log(e);
-        io.to(gameRoom(game.id)).emit('game_full', { 'game_id': game_id });
+        socket.emit('game_full', { 'game_id': game_id });
       }
     } else {
       socket.emit('server_error', 'Invalid Game ID');
@@ -111,8 +124,9 @@ function handleSocket(io, socket) {
     var game = games[game_id];
     if (game) {
       try {
-        game.addComputer(helper.createComputerID());
-        io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id });
+        var pid = helper.createComputerID();
+        var player_num = game.addComputer(pid);
+        io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id, 'player_num': player_num });
         console.log('Added Computer Player to Game: '+game_id);
       } catch (e) {
         console.log(e);
@@ -155,7 +169,14 @@ function handleSocket(io, socket) {
     } else {
       socket.emit('server_error', "INVALID GAME ID");
     }
-  })
+  });
+
+  /**
+   * Replies with game list data when a request for the data is made
+   */
+  socket.on('request_game_list', function() {
+    socket.emit('game_list', listGames());
+  });
 
   /**
    * Handle Socket Errors
@@ -181,6 +202,16 @@ function listGames() {
     g.push(item);
   }
   return g;
+}
+
+function findEmptyGame() {
+  for (var g in games) {
+    var game = games[g];
+    if (game.numberSlotsAvailable() > 0) {
+      return game.id;
+    }
+  }
+  return null;
 }
 
 function gameRoom(game_id) {

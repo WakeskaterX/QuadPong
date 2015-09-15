@@ -4,7 +4,7 @@
 
 QuadPong is a four player online pong game, played out on the server & rendered on the client.  The purpose of the project is to practice server side architecture, client synchronization, physics and vector mathematics by making a simple multiplayer game with rooms, etc.
 
-It's still a work in progress, multiplayer, rooms, etc will be added later.
+It's still a work in progress, multiplayer has just been added and is still in testing.
 
 ###Run the Game:
 
@@ -28,6 +28,19 @@ It's still a work in progress, multiplayer, rooms, etc will be added later.
 
 *Notes*:
 
-At the moment the game does not support multiplayer, that's coming next.  When you start up a new game you will play against 3 computer controlled players.
-
 Also, you can edit the game settings in app/config/settings.json to fiddle around with the gameplay.  It'll change on the client side too.
+
+####Updates:
+
+* 09-15-2015:  Initial Multiplayer Functionality is now added!  You can test this by creating a game on one browser and creating a game and opening another browser and joining a game.
+
+
+**Open Source Libraries Used:**
+
+A list of open source libraries included in this project, all other code is my own:
+
+* [JQuery]()
+
+* [Hi Def Canvas Code]()
+
+* [Keypress]()

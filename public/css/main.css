@@ -7,3 +7,9 @@ body > div {
 canvas {
   background-color: black;
 }
+
+#players table {
+  margin: auto;
+  text-align: center;
+  font-family: sans-serif;
+}

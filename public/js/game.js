@@ -2,14 +2,35 @@ var GameObjects = {
   ball: {position: {x: 0, y: 0}},
 }
 
+var PlayerData = {
+  p1: null,
+  p2: null,
+  p3: null,
+  p4: null
+}
+/**
+ * PlayerData Format:
+ * p1: {
+ *   player_num: 1,
+ *   player_life: 2,
+ *   is_self: true,
+ *   type: "Human"
+ * }
+ */
+
+var math_ext = require('/app/lib/math_extension.js');
+
 var debug = false;
 var states= {
   'NONE': 'NONE',
   'MENU': 'MENU',
   'GAME': 'GAME',
   'LOBBY': 'LOBBY',
-  'WAITING': 'WAITING'
+  'WAITING': 'WAITING',
+  'GAME_END': 'GAME_END'
 }
+
+var LOBBY_SELECT = 0; //0 = create game selected, 1 = join game selected
 
 var STATE = states.MENU;
 
@@ -38,8 +59,6 @@ window.onload = function init() {
 
 function updateCanvas() {
   switch(STATE) {
-    case states.NONE:
-      break;
     case states.MENU:
       drawMenu();
       break;
@@ -50,8 +69,9 @@ function updateCanvas() {
       drawLobby();
       break;
     case states.WAITING:
-      drawGame();
       drawWaiting();
+      break;
+    case states.GAME_END:
       break;
   }
 }
@@ -68,12 +88,15 @@ function drawMenu() {
   ctx.textAlign = "center";
   ctx.fillText("QuadPong",canvas_width/2,200);
   ctx.font = "small-caps 400 24px Arial";
-  ctx.fillText("Press Enter to Create or Join an Existing Game",canvas_width/2,400);
-}
-
-//Draws the open games and players
-function drawLobby() {
-  
+  ctx.fillText("Create New Game",canvas_width/2,400);
+  ctx.fillText("Join Existing Game", canvas_width/2, 460);
+  ctx.strokeStyle = "#FFF";
+  if (LOBBY_SELECT === 0) {
+    ctx.strokeRect(canvas_width/2 - 150, 370, 300, 40);
+  } else {
+    ctx.strokeRect(canvas_width/2 - 150, 430, 300, 40);
+  }
+  ctx.stroke();
 }
 
 function drawBall() {
@@ -94,9 +117,14 @@ function drawPlayers() {
 }
 
 function drawWaiting() {
+  clearCanvas();
   ctx.font = "small-caps 800 48px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("Waiting for Players...",canvas_width/2, canvas_height/2-200);
+  if (players_in_game >= 4) {
+    ctx.fillText("Starting Game!", canvas_width/2, canvas_height/2-200);
+  } else {
+    ctx.fillText("Waiting for Players...",canvas_width/2, canvas_height/2-200);
+  }
 }
 
 function convert(x, y) {
@@ -157,7 +185,11 @@ function registerKeypress() {
     "keys": "enter",
     "on_keydown": function() {
       if (STATE === states.MENU) {
-        create_game();
+        if (LOBBY_SELECT === 0) {
+          create_game();
+        } else {
+          join_game();
+        }
       }
     },
     "prevent_repeat": true
@@ -165,32 +197,41 @@ function registerKeypress() {
 }
 
 function playerActionGenerator(direction) {
-  switch(player_num) {
-    case 1:
-      if (direction === "L") playerAction("L");
-      if (direction === "R") playerAction("R");
-      break;
-    case 2:
-      if (direction === "U") playerAction("R");
-      if (direction === "D") playerAction("L");
-      break;
-    case 3:
-      if (direction === "L") playerAction("R");
-      if (direction === "R") playerAction("L");
-      break;
-    case 4:
-      if (direction === "D") playerAction("R");
-      if (direction === "U") playerAction("L");
-      break;
+  if (STATE === states.GAME) {
+    switch(player_num) {
+      case 1:
+        if (direction === "L") playerAction("L");
+        if (direction === "R") playerAction("R");
+        break;
+      case 2:
+        if (direction === "U") playerAction("R");
+        if (direction === "D") playerAction("L");
+        break;
+      case 3:
+        if (direction === "L") playerAction("R");
+        if (direction === "R") playerAction("L");
+        break;
+      case 4:
+        if (direction === "D") playerAction("R");
+        if (direction === "U") playerAction("L");
+        break;
+    }
+  } else if (STATE === states.MENU) {
+    if (direction === "D" || direction === "U") {
+      LOBBY_SELECT = LOBBY_SELECT ? 0 : 1;
+      updateCanvas();
+    }
   }
 }
 
 function playerAction(dir) {
-  var data = {
-    "player_id": player_id,
-    "game_id": game_id,
-    "action": dir
-  };
-  console.log("Emitting Action "+dir);
-  socket.emit("action", data);
+  if (STATE === states.GAME) {
+    var data = {
+      "player_id": player_id,
+      "game_id": game_id,
+      "action": dir
+    };
+    console.log("Emitting Action "+dir);
+    socket.emit("action", data); 
+  }
 }

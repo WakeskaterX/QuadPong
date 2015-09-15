@@ -115,11 +115,16 @@ function Game(id_no){
     return getPlayer(player_id);
   }
 
+  this.getAllPlayers = function() {
+    return players;
+  }
+
   this.addPlayer = function(player_id) {
     var pNum = getEmptySlot();
     console.log('Got Empty Slot #: '+pNum);
     if (pNum !== 0) {
       players["p"+pNum] = new Paddle(player_id, pNum, false);
+      return pNum;
     } else {
       throw new Error("Player Could not be added to the game, the game is full!");
     }
@@ -131,6 +136,7 @@ function Game(id_no){
     if (pNum !== 0) {
       var comp_player = new Paddle(player_id, pNum, true);
       players["p"+pNum] = comp_player;
+      return pNum;
     } else {
       throw new Error("Player Could not be added to the game, the game is full!");
     }

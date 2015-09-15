@@ -10,7 +10,7 @@ app.get('/', function(req, res) {
 
 app.get('/games', function(req, res) {
   res.send(SocketHandler.listGames());
-})
+});
 
 app.use(express.static('public'));
 
