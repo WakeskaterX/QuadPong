@@ -39,8 +39,8 @@ Also, you can edit the game settings in app/config/settings.json to fiddle aroun
 
 A list of open source libraries included in this project, all other code is my own:
 
-* [JQuery]()
+* [JQuery](https://github.com/jquery/jquery)
 
-* [Hi Def Canvas Code]()
+* [Hi Def Canvas Code](http://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
 
-* [Keypress]()
+* [Keypress](http://dmauro.github.io/Keypress/)
