@@ -27,9 +27,6 @@ function handleSocket(io, socket) {
         var game = games[data.game_id];
         socket.join(gameRoom(game.id));
         socket.emit('reconnect', data);
-        game.on('update', function (data) {
-          io.to(gameRoom(game.id)).emit('update', data);
-        });
         return;
       }
     }
@@ -48,9 +45,21 @@ function handleSocket(io, socket) {
 
   /**
    * When a player leaves a game, remove them from the socket room
+   * @param {string} data.player_id
+   * @param {string} data.game_id
    */
   socket.on('leave_game', function(data) {
     //TODO:  Remove player from socket room and emit a leave event -- this happens automatically
+    if (players.indexOf(data.player_id) >= 0 && games.hasOwnProperty(data.game_id)) {
+      var game = games[data.game_id];
+      if (game.hasPlayer(data.player_id)) {
+        var thisPlayer = game.getPlayerByID(data.player_id);
+        socket.leave(gameRoom(game.id));
+        io.to(gameRoom(game.id)).emit('player_left', {player_num: thisPlayer.playerNum});
+        thisPlayer.id = "INVALID";
+        players[players.indexOf(data.player_id)] = null;  //TODO: Make this better, setting to null is sort of a hack
+      }
+    }
   });
 
   /**
@@ -67,6 +76,9 @@ function handleSocket(io, socket) {
       io.to(gameRoom(game.id)).emit('started_game', { 'game_id': game_id });
       game.on('update', function (data) {
         io.to(gameRoom(game.id)).emit('update', data);
+      });
+      game.on('end_game', function(data) {
+        io.to(gameRoom(game.id)).emit('game_over', { winner: data.playerNum });
       });
     } else {
       console.log('Error: INVALID GAME ID: ' + game_id);
@@ -104,7 +116,7 @@ function handleSocket(io, socket) {
         }
         var player_num = game.addPlayer(player_id);
         socket.emit('joined_game', {'game_id': game_id, 'player_num': player_num, 'players': game_players });
-        io.to(gameRoom(game_id)).emit('added_player', { game_id: game_id, player_num: player_num });
+        io.to(gameRoom(game_id)).emit('added_player', { game_id: game_id, player_num: player_num, player_life: config.game_settings.player_max_life });
       } catch (e) {
         console.log(e);
         socket.emit('game_full', { 'game_id': game_id });
@@ -126,7 +138,7 @@ function handleSocket(io, socket) {
       try {
         var pid = helper.createComputerID();
         var player_num = game.addComputer(pid);
-        io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id, 'player_num': player_num });
+        io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id, 'player_num': player_num, 'player_life': config.game_settings.player_max_life });
         console.log('Added Computer Player to Game: '+game_id);
       } catch (e) {
         console.log(e);

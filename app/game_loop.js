@@ -47,7 +47,8 @@ function Game(id_no){
       p3: players.p3,
       p4: players.p4
     });
-    setTimeout(function() { gameLoop(); }, Math.max(gameloop_delta-time_elapsed, 1));
+    checkEndGame();
+    setTimeout(function() { if (status === 2) { gameLoop(); }}, Math.max(gameloop_delta-time_elapsed, 1));
   }
 
   function getEmptySlot(){
@@ -86,6 +87,22 @@ function Game(id_no){
       if (players[key].intersects(ball) && players[key].active) {
         ball.bounce_against(players[key]);
       }
+    }
+  }
+
+  function checkEndGame() {
+    //Check if only 1 player remains with life
+    var players_remain = 0;
+    var survivor = {};
+    for (var key in players) {
+      if (players[key].life > 0) {
+        players_remain++;
+        survivor = players[key];
+      }
+    }
+    if (players_remain <= 1) {
+      self.emit('end_game', survivor);
+      status = 3;
     }
   }
 

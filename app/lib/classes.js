@@ -84,7 +84,8 @@ Ball.prototype.reset = function(){
 }
 
 Ball.prototype.start_velocity = function() {
-  this.velocity = Physics.getVectorFromDirection(Math.random() * 360, config.game_settings.ball_speed);
+  var direction = getRandomValidDirection();
+  this.velocity = Physics.getVectorFromDirection(direction, config.game_settings.ball_speed);
 }
 
 Ball.prototype.bounce_x = function() {
@@ -208,6 +209,16 @@ function getPositiveVectorDirection(p_num) {
     case 4:
       return new Vector2(0, -1);
   }
+}
+
+function getRandomValidDirection() {
+  var dir = Math.random() * 360;
+  for (var i = 0; i < 5; i++) {
+    if (Math.abs(dir - (90 * i)) < 5) {
+      return getRandomValidDirection();
+    }
+  }
+  return dir;
 }
 
 module.exports = {

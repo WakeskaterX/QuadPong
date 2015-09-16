@@ -3,6 +3,7 @@ var player_id = localStorage["player_id"] || null;
 var game_id = localStorage["game_id"] || null;
 var players_in_game = 0;
 var game_list = [];
+var winner = "";
 
 socket.on('connect', function(){
   var playerData = {
@@ -50,7 +51,7 @@ socket.on('game_settings', function(data) {
 function create_game() {
   socket.emit('create_game', {'player_id': player_id});
   player_num = 1;
-  add_player("Human",{ player_num: 1 });
+  add_player("Human",{ player_num: 1, player_life: 1 });
 }
 
 function join_game() {
@@ -95,6 +96,11 @@ socket.on('no_games', function(){
   alert('No Available Games!');
 });
 
+socket.on('game_over', function(data) {
+  winner = data.winner;
+  STATE = states.GAME_END;
+});
+
 function save_data(){
   localStorage["player_id"] = player_id;
   localStorage["game_id"] = game_id;
@@ -129,7 +135,25 @@ function start_game(){
   }
 }
 
-function update_player_list (){
+function restart_game(){
+  STATE = states.MENU;
+  PlayerData = {
+    p1: null,
+    p2: null,
+    p3: null,
+    p4: null
+  };
+  GameObjects = {
+    ball: {position: {x: 0, y: 0}},
+  }
+  LOBBY_SELECT = 0;
+  players_in_game = 0;
+  socket.emit('leave_game', { player_id: player_id, game_id: game_id });
+  game_id = null;
+  clear_player_list();
+}
+
+function update_player_list(){
   if (PlayerData) {
     $("#players tbody").empty();
     for (var pid in PlayerData) {
@@ -145,6 +169,10 @@ function update_player_list (){
       }
     }
   }
+}
+
+function clear_player_list(){
+  $("#players tbody").empty();
 }
 
 function extract_player_data(data){

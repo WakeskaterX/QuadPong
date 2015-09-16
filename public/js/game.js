@@ -38,11 +38,14 @@ var canvas, ctx;
 var canvas_width = 600,
     canvas_height = 600;
 
+var game_color = '#FFF',
+    player_active_color = '#0FF';
+
 var size_mult = 6;
 var player_num = 1;
 var game_settings = {
-  ball_size: 4,
-  paddle_width: 12,
+  ball_size: 2,
+  paddle_width: 9,
   paddle_depth: 6
 };
 
@@ -52,7 +55,7 @@ window.onload = function init() {
   canvas = createHiDPICanvas(canvas_width, canvas_height);
   document.getElementById("game").appendChild(canvas);
   ctx = canvas.getContext("2d");
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = game_color;
   keypress_listener = new window.keypress.Listener();
   registerKeypress();
 };
@@ -72,6 +75,7 @@ function updateCanvas() {
       drawWaiting();
       break;
     case states.GAME_END:
+      drawGameOver();
       break;
   }
 }
@@ -90,11 +94,11 @@ function drawMenu() {
   ctx.font = "small-caps 400 24px Arial";
   ctx.fillText("Create New Game",canvas_width/2,400);
   ctx.fillText("Join Existing Game", canvas_width/2, 460);
-  ctx.strokeStyle = "#FFF";
+  ctx.strokeStyle = game_color;
   if (LOBBY_SELECT === 0) {
-    ctx.strokeRect(canvas_width/2 - 150, 370, 300, 40);
+    ctx.strokeRect(canvas_width/2 - 150, 372, 300, 40);
   } else {
-    ctx.strokeRect(canvas_width/2 - 150, 430, 300, 40);
+    ctx.strokeRect(canvas_width/2 - 150, 432, 300, 40);
   }
   ctx.stroke();
 }
@@ -109,6 +113,11 @@ function drawPlayers() {
   for (var i = 0; i < players.length; i++) {
     var obj = GameObjects[players[i]];
     if (obj) {
+      if (PlayerData[players[i]].player_num == player_num) {
+        ctx.fillStyle = player_active_color;
+      } else {
+        ctx.fillStyle = game_color;
+      }
       var start_vect = convert(obj.bounding_box.x1, obj.bounding_box.y1);
       var end_vect = convert(obj.bounding_box.x2, obj.bounding_box.y2);
       ctx.fillRect(start_vect.x, start_vect.y, end_vect.x-start_vect.x, end_vect.y-start_vect.y);
@@ -121,10 +130,21 @@ function drawWaiting() {
   ctx.font = "small-caps 800 48px Arial";
   ctx.textAlign = "center";
   if (players_in_game >= 4) {
-    ctx.fillText("Starting Game!", canvas_width/2, canvas_height/2-200);
+    ctx.fillText("Game Ready!", canvas_width/2, canvas_height/2-200);
   } else {
     ctx.fillText("Waiting for Players...",canvas_width/2, canvas_height/2-200);
   }
+}
+
+function drawGameOver() {
+  clearCanvas();
+  ctx.font = "small-caps 800 48px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Game Over!", canvas_width/2, canvas_height/2-200);
+  ctx.font = "small-caps 800 36px Arial";
+  ctx.fillText("Winner is Player # "+winner, canvas_width/2, canvas_height/2-18);
+  ctx.font = "small-caps 800 24px Arial";
+  ctx.fillText("Press Enter to go to menu!", canvas_width/2, canvas_height-50);
 }
 
 function convert(x, y) {
@@ -190,6 +210,8 @@ function registerKeypress() {
         } else {
           join_game();
         }
+      } else if (STATE === states.GAME_END) {
+        restart_game();
       }
     },
     "prevent_repeat": true
