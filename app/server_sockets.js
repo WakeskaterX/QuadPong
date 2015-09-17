@@ -5,6 +5,9 @@ var fs = require('fs');
 var Game = require('./game_loop.js');
 var config = JSON.parse(fs.readFileSync('./app/config/settings.json'));
 
+/**
+ * Handles our Socket - sets up IO and our socket connections
+ */
 function handleSocket(io, socket) {
   console.log('New Socket Connection: ' + socket.id);
 
@@ -201,10 +204,16 @@ function handleSocket(io, socket) {
   });
 }
 
+/**
+ * Flushes our games list
+ */
 function flushGames() {
   games = {};
 }
 
+/**
+ * Lists all games
+ */
 function listGames() {
   var g = [];
   for (var id in games) {
@@ -216,6 +225,9 @@ function listGames() {
   return g;
 }
 
+/**
+ * Finds an empty game where we have playable slots open
+ */
 function findEmptyGame() {
   for (var g in games) {
     var game = games[g];
@@ -226,6 +238,9 @@ function findEmptyGame() {
   return null;
 }
 
+/**
+ * modifier function to get a room for sockets to join
+ */
 function gameRoom(game_id) {
   return 'game_'+game_id;
 }

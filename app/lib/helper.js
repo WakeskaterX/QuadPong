@@ -19,10 +19,16 @@ function createPlayerID (existing_ids) {
   }
 }
 
+/**
+ * Creates a game ID to use
+ */
 function createGameID () {
   return "game"+(+Date.now());
 }
 
+/**
+ * Creates a computer ID
+ */
 function createComputerID () {
   return "comp"+(+Date.now());
 }

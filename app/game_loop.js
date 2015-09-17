@@ -40,6 +40,7 @@ function Game(id_no){
     if (time_elapsed > 30) {
       console.log("WARNING: This loop took "+time_elapsed+" ms");
     }
+    //Emit the data to the clients
     self.emit('update', {
       ball: ball,
       p1: players.p1,
@@ -47,10 +48,15 @@ function Game(id_no){
       p3: players.p3,
       p4: players.p4
     });
+    //Check if the game is over (i.e a player won)
     checkEndGame();
+    //If our game is running continue the loop
     setTimeout(function() { if (status === 2) { gameLoop(); }}, Math.max(gameloop_delta-time_elapsed, 1));
   }
 
+  /**
+   * Returns and empty slot so we can easily add players
+   */
   function getEmptySlot(){
     switch(true) {
       case !players.p1:
@@ -66,7 +72,9 @@ function Game(id_no){
     }
   }
 
-  //Moves the player paddles
+  /**
+   * Moves the player paddles by updating all the player positions passing in our delta time
+   */
   function movePlayerPaddles(delta){
     for (var key in players) {
       if (players.hasOwnProperty(key)) {
@@ -78,10 +86,16 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Moves the ball passing in our delta time
+   */
   function moveBall(delta) {
     ball.updatePosition(delta);
   }
 
+  /**
+   * Check each player for collisions with the ball
+   */
   function checkCollisions() {
     for (var key in players) {
       if (players[key].intersects(ball) && players[key].active) {
@@ -90,8 +104,10 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Check if a single player remains - that player wins
+   */
   function checkEndGame() {
-    //Check if only 1 player remains with life
     var players_remain = 0;
     var survivor = {};
     for (var key in players) {
@@ -106,6 +122,9 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Gets a player by a player_id
+   */
   function getPlayer(player_id) {
     for (var key in players) {
       if (players[key].playerID === player_id) {
@@ -116,6 +135,11 @@ function Game(id_no){
     return null;
   }
 
+  /**
+   * Checks if we have a player by player_id in this game
+   * @param {string} player_id
+   * @returns {bool}
+   */
   this.hasPlayer = function(player_id) {
     if (getPlayer(player_id) !== null) {
       return true;
@@ -124,18 +148,37 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Checks if a player is currently active & alive
+   * @param {string} player_id
+   * @returns {bool}
+   */
   this.isPlayerActive = function(player_num) {
     return players[player_num].active;
   }
 
+  /**
+   * Returns a player by requesting with ID
+   * @param {string} player_id
+   * @returns {Paddle} player
+   */
   this.getPlayerByID = function(player_id) {
     return getPlayer(player_id);
   }
 
+  /**
+   * Returns all players
+   * @returns {Paddle[]}
+   */
   this.getAllPlayers = function() {
     return players;
   }
 
+  /**
+   * Adds a player to the game
+   * @param {string} player_id
+   * @returns {number} player number (1-4)
+   */
   this.addPlayer = function(player_id) {
     var pNum = getEmptySlot();
     console.log('Got Empty Slot #: '+pNum);
@@ -147,6 +190,11 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Adds a computer player to the game
+   * @param {string} player_id
+   * @returns {number} player number (1-4)
+   */
   this.addComputer = function(player_id) {
     var pNum = getEmptySlot();
     console.log('Got Empty Slot For Computer #: '+pNum);
@@ -159,11 +207,25 @@ function Game(id_no){
     }
   }
 
+  /**
+   * Removes a player from the game
+   * @param {player_id}
+   * @returns {bool} returns if it succeeded in removing player
+   */
   this.removePlayer = function(player_id) {
     var player = getPlayer(player_id);
-    players["p"+player.player_num] = {};
+    if (player) {
+      players["p"+player.player_num] = {};
+      return true;
+    } else {
+      return false;
+    }
   }
 
+  /**
+   * Sets up the game state
+   * @param {string} first_player_id - id of the first player (creator) of the game
+   */
   this.gameSetup = function(first_player_id) {
     status = 1;
     ball = new Ball(new Vector2(0,0));
@@ -171,6 +233,9 @@ function Game(id_no){
     this.addPlayer(first_player_id);
   }
 
+  /**
+   * Starts the game
+   */
   this.gameStart = function() {
     if (getEmptySlot() === 0) {
       status = 2;
@@ -183,6 +248,11 @@ function Game(id_no){
     }
   };
 
+  /**
+   * Updates a players action
+   * @param {string} player_id
+   * @param {string} action
+   */
   this.updatePlayerAction = function(player_id, action){
     if (status === 2) {
       var player = getPlayer(player_id);
@@ -192,12 +262,10 @@ function Game(id_no){
     }
   }
 
-  this.startGame = function(){
-    lastLoopTime = +Date.now();
-    gameLoop();
-  }
-
-  //Reveals the open player slots
+  /**
+   * Returns the number of open slots in the game
+   * @returns {number} slots
+   */
   this.numberSlotsAvailable = function() {
     var slots = 0;
     for (var player_id in players) {
@@ -206,6 +274,10 @@ function Game(id_no){
     return slots;
   }
 
+  /**
+   * Event function - onPoint
+   * scores a point against player passed in
+   */
   this.on('point', function(player) {
     if (players[player].active) {
       players[player].life -= 1;

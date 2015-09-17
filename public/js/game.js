@@ -1,7 +1,13 @@
+/*********************************
+ * Variables
+ *********************************/
+
+//Collection of Game Objects and values
 var GameObjects = {
   ball: {position: {x: 0, y: 0}},
 }
 
+//Player Status Data
 var PlayerData = {
   p1: null,
   p2: null,
@@ -18,9 +24,12 @@ var PlayerData = {
  * }
  */
 
+//Import our math_ext library
 var math_ext = require('/app/lib/math_extension.js');
 
 var debug = false;
+
+//All of the Game States
 var states= {
   'NONE': 'NONE',
   'MENU': 'MENU',
@@ -30,17 +39,22 @@ var states= {
   'GAME_END': 'GAME_END'
 }
 
+//Selection Value for the Lobby
 var LOBBY_SELECT = 0; //0 = create game selected, 1 = join game selected
 
+//Starting State
 var STATE = states.MENU;
 
+//Canvas Variables
 var canvas, ctx;
 var canvas_width = 600,
     canvas_height = 600;
 
+//Game Colors - active player color and game general color
 var game_color = '#FFF',
     player_active_color = '#0FF';
 
+//Initial Values for the game
 var size_mult = 6;
 var player_num = 1;
 var game_settings = {
@@ -51,6 +65,9 @@ var game_settings = {
 
 var keypress_listener = null;
 
+/**
+ * On Load Initialize - create our HiDPICanvas and set up our keypress listener
+ */
 window.onload = function init() {
   canvas = createHiDPICanvas(canvas_width, canvas_height);
   document.getElementById("game").appendChild(canvas);
@@ -60,6 +77,9 @@ window.onload = function init() {
   registerKeypress();
 };
 
+/**
+ * Draw various states depending on the state of the game
+ */
 function updateCanvas() {
   switch(STATE) {
     case states.MENU:
@@ -68,9 +88,9 @@ function updateCanvas() {
     case states.GAME:
       drawGame();
       break;
-    case states.LOBBY:
-      drawLobby();
-      break;
+    //case states.LOBBY: -- Not USED - can be added later for a game select lobby
+      //drawLobby();
+      //break;
     case states.WAITING:
       drawWaiting();
       break;
@@ -80,12 +100,18 @@ function updateCanvas() {
   }
 }
 
+/**
+ * Draw our game for the game state, ball position and players
+ */
 function drawGame() {
   clearCanvas();
   drawBall();
   drawPlayers();
 }
 
+/**
+ * Draw our Menu - (Lobby)
+ */
 function drawMenu() {
   clearCanvas();
   ctx.font = "small-caps 800 64px Arial";
@@ -103,12 +129,18 @@ function drawMenu() {
   ctx.stroke();
 }
 
+/**
+ * Draw the Ball
+ */
 function drawBall() {
   ctx.fillStyle = game_color;
   var ball_coords = convert(GameObjects.ball.position.x, GameObjects.ball.position.y);
   ctx.fillRect(ball_coords.x - game_settings.ball_size/2 * size_mult, ball_coords.y - game_settings.ball_size/2 * size_mult, game_settings.ball_size * size_mult, game_settings.ball_size * size_mult);
 }
 
+/**
+ * Draw our players - draw the active player (you) in a different color
+ */
 function drawPlayers() {
   var players = ["p1", "p2", "p3", "p4"];
   for (var i = 0; i < players.length; i++) {
@@ -127,6 +159,9 @@ function drawPlayers() {
   }
 }
 
+/**
+ * Draw the waiting screen when a player has joined but we need more players
+ */
 function drawWaiting() {
   clearCanvas();
   ctx.font = "small-caps 800 48px Arial";
@@ -138,6 +173,9 @@ function drawWaiting() {
   }
 }
 
+/**
+ * Draw the game over screen - and which player won
+ */
 function drawGameOver() {
   clearCanvas();
   ctx.font = "small-caps 800 48px Arial";
@@ -149,19 +187,27 @@ function drawGameOver() {
   ctx.fillText("Press Enter to go to menu!", canvas_width/2, canvas_height-50);
 }
 
+/**
+ * Convert's the Servers XY Coord system to the canvas system
+ */
 function convert(x, y) {
   var new_x = (x + 50) * size_mult;
   var new_y = ((y * -1) + 50) * size_mult;
   return {'x': new_x, 'y': new_y};
 }
 
+/**
+ * Clears our canvas
+ */
 function clearCanvas() {
   ctx.clearRect(0,0,100 * size_mult,100 * size_mult);
 }
 
 
 
-//KEYBOARD CONTROLS
+/**
+ * Keypad listener - listens for key presses and outputs events based on the keys pressed
+ */
 function registerKeypress() {
   keypress_listener.register_combo({
     "keys": "up",
@@ -220,6 +266,9 @@ function registerKeypress() {
   });
 }
 
+/**
+ * Changes what each key does (directional arrows) based on the player num
+ */
 function playerActionGenerator(direction) {
   if (STATE === states.GAME) {
     switch(player_num) {
@@ -248,6 +297,9 @@ function playerActionGenerator(direction) {
   }
 }
 
+/**
+ * Generates the player action and emits to the server
+ */
 function playerAction(dir) {
   if (STATE === states.GAME) {
     var data = {

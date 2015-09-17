@@ -5,7 +5,13 @@ var Physics = require('./physics.js'),
     fs = require('fs'),
     config = JSON.parse(fs.readFileSync('./app/config/settings.json'));
 
-//Base GameObject for both Paddles and The Ball
+/**
+ * GameObject - base object for all other objects in the game
+ * @contructor
+ * @param {string} name
+ * @param {Vector2} position
+ * @param {BoundingBox} bounding_box
+ */
 var GameObject = function(name, position, bounding_box) {
   this.position = position;
   this.velocity = new Vector2(0, 0);
@@ -15,11 +21,19 @@ var GameObject = function(name, position, bounding_box) {
 
 GameObject.constructor = GameObject;
 
+/**
+ * Checks if this game object intersects another
+ * @param {GameObject} other_obj
+ * @returns {bool}
+ */
 GameObject.prototype.intersects = function(other_object) {
-  //console.log('Checking Intersection!', this.bounding_box, other_object.bounding_box);
   return this.bounding_box.intersects(other_object.bounding_box);
 }
 
+/**
+ * Ball - child of GameObject
+ * @param {number} position
+ */
 var Ball = function(position) {
   var ball_size = config.game_settings.ball_size;
   GameObject.call(this, "Ball", position, new BoundingBox(position, ball_size, ball_size));
@@ -31,6 +45,10 @@ var Ball = function(position) {
 Ball.prototype = Object.create(GameObject.prototype);
 Ball.prototype.constructor = Ball;
 
+/**
+ * Updates the ball position based on it's current velocity scaled to delta T
+ * @param {number} dt - delta time
+ */
 Ball.prototype.updatePosition = function(dt) {
   this.position.add(this.velocity.scaleTo(dt/1000));
   this.bounding_box.update(this.position);
@@ -45,6 +63,9 @@ Ball.prototype.updatePosition = function(dt) {
   }
 }
 
+/**
+ * Checks the boundaries and calculates score if player is active
+ */
 Ball.prototype.checkBounds = function(){
   var player_score;
   if (this.position.x < -50 && this.velocity.x < 0) {
@@ -76,6 +97,9 @@ Ball.prototype.checkBounds = function(){
   }
 }
 
+/**
+ * Resets the ball to the center of the room
+ */
 Ball.prototype.reset = function(){
   var self = this;
   this.position = new Vector2(0, 0);
@@ -83,20 +107,34 @@ Ball.prototype.reset = function(){
   setTimeout(function(){ self.start_velocity(); }, config.game_settings.reset_timer);
 }
 
+/**
+ * Gives the ball an initial velocity
+ */
 Ball.prototype.start_velocity = function() {
   var direction = getRandomValidDirection();
   this.velocity = Physics.getVectorFromDirection(direction, config.game_settings.ball_speed);
 }
 
+/**
+ * Reverse the ball X Velocity
+ */
 Ball.prototype.bounce_x = function() {
   this.velocity.x *= -1;
 }
 
+/**
+ * Reverse the ball Y Velocity
+ */
 Ball.prototype.bounce_y = function() {
   this.velocity.y *= -1;
 }
 
-//obj must be a game object
+/**
+ * Bounce against another game object
+ * Checks the normal of the other object and bounces using that normal to determine how it should bounce.
+ * Also checks where on the paddle it should bounce to add various speeds to give better control.
+ * @param {GameObject} game_obj
+ */
 Ball.prototype.bounce_against = function(game_obj) {
   //determine game_object normal we're bouncing against,
   if (!this.colliding) {
@@ -112,6 +150,14 @@ Ball.prototype.bounce_against = function(game_obj) {
   }
 }
 
+/**
+ * Paddle - child of GameObject
+ * Paddle is the player object that holds all the player data
+ * @constructor
+ * @param {string} player_id
+ * @param {number} player_num
+ * @param {bool} is_comp - is this a computer player?
+ */
 var Paddle = function (player_id, player_num, is_comp) {
   var starting_location = getStartingLocation(player_num);
   var bbox = getPlayerBoundingBox(starting_location, player_num, config.game_settings.paddle_width);
@@ -130,10 +176,18 @@ var Paddle = function (player_id, player_num, is_comp) {
 Paddle.prototype = Object.create(GameObject.prototype);
 Paddle.prototype.constructor = Paddle;
 
+/**
+ * Updates a Player Action
+ * @param {string} action 
+ */
 Paddle.prototype.updateAction = function(action) {
   this.action = action;
 }
 
+/**
+ * Updates a players position given delta time based on current action
+ * @param {number} dt - delta time
+ */
 Paddle.prototype.updatePosition = function(dt) {
   if (this.action === 'R') {
     this.velocity = this.positive_vector.scaleTo(config.game_settings.paddle_speed * dt / 1000);
@@ -151,6 +205,9 @@ Paddle.prototype.updatePosition = function(dt) {
   this.bounding_box.update(this.position);
 }
 
+/**
+ * Updates a paddles with based on it's life
+ */
 Paddle.prototype.updateWidth = function() {
   var max_width = config.game_settings.paddle_width;
   this.bounding_box = getPlayerBoundingBox(this.position, this.playerNum, max_width * (this.life / config.game_settings.player_max_life));
@@ -159,6 +216,9 @@ Paddle.prototype.updateWidth = function() {
   }
 }
 
+/**
+ * Checks the position of the ball and updates the computers action
+ */
 Paddle.prototype.computerAction = function(ball) {
   if (this.is_computer) {
     var movement_vector = ball.position.copy();
@@ -173,7 +233,14 @@ Paddle.prototype.computerAction = function(ball) {
   }
 }
 
-//PRIVATE FUNCTIONS
+/***********************
+ * PRIVATE FUNCTIONS
+ ***********************/
+/**
+ * Gets the starting location for each player based on player_num
+ * @param {number} player_num
+ * @returns {Vector2}
+ */
 function getStartingLocation(player_num) {
   switch(player_num) {
     case 1:
@@ -187,6 +254,13 @@ function getStartingLocation(player_num) {
   }
 }
 
+/**
+ * gets the players bounding box
+ * @param {Vector2} center
+ * @param {number} player_num
+ * @param {number} paddle_width
+ * @returns {BoundingBox}
+ */
 function getPlayerBoundingBox(center, player_num, paddle_width) {
   var paddle_depth = config.game_settings.paddle_depth;
   switch(player_num) {
@@ -200,7 +274,11 @@ function getPlayerBoundingBox(center, player_num, paddle_width) {
 }
 
 
-//The Positive Vector Direction corresponds to moving Right 
+/**
+ * Gets the positive vector for each player
+ * @param {number} p_num
+ * @returns {Vector2}
+ */
 function getPositiveVectorDirection(p_num) {
   switch (p_num) {
     case 1:
@@ -214,6 +292,10 @@ function getPositiveVectorDirection(p_num) {
   }
 }
 
+/**
+ * Gets a random VALID direction - i.e. can't be a perfect 90 degrees so it won't bounce between 2 inactive players
+ * @returns {number}
+ */
 function getRandomValidDirection() {
   var dir = Math.random() * 360;
   for (var i = 0; i < 5; i++) {

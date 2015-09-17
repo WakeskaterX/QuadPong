@@ -4,6 +4,9 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var SocketHandler = require('./app/server_sockets.js');
 
+/**
+ * ROUTES
+ */
 app.get('/', function(req, res) {
   res.redirect('/index.html');
 });
