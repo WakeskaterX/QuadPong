@@ -103,11 +103,12 @@ Ball.prototype.bounce_against = function(game_obj) {
     this.colliding = true;
     this.colliding_with = game_obj;
     var normal = game_obj.normal_vector.copy().normalize();
+    var other_velocity = game_obj.velocity.copy().scalarMultiply(config.game_settings.paddle_velocity_multiplier);
     this.velocity.reflect(normal);
     var additional_velocity = this.position.copy().subtract(game_obj.position).scalarMultiply(config.game_settings.paddle_velocity_multiplier);
     var initial_velocity = this.velocity.copy();
     var orig_mag = initial_velocity.getMagnitude();
-    this.velocity = initial_velocity.add(additional_velocity).normalize().setMagnitude(orig_mag);
+    this.velocity = initial_velocity.add(additional_velocity).add(other_velocity).normalize().setMagnitude(orig_mag);
   }
 }
 
@@ -135,8 +136,10 @@ Paddle.prototype.updateAction = function(action) {
 
 Paddle.prototype.updatePosition = function(dt) {
   if (this.action === 'R') {
+    this.velocity = this.positive_vector.scaleTo(config.game_settings.paddle_speed * dt / 1000);
     this.position.add(this.positive_vector.scaleTo(config.game_settings.paddle_speed * dt / 1000));
   } else if (this.action === 'L') {
+    this.velocity = this.positive_vector.scaleTo(config.game_settings.paddle_speed * dt / 1000).flip();
     this.position.subtract(this.positive_vector.scaleTo(config.game_settings.paddle_speed * dt / 1000));
   }
   //Clamp to boundries

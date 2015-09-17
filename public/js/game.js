@@ -104,6 +104,7 @@ function drawMenu() {
 }
 
 function drawBall() {
+  ctx.fillStyle = game_color;
   var ball_coords = convert(GameObjects.ball.position.x, GameObjects.ball.position.y);
   ctx.fillRect(ball_coords.x - game_settings.ball_size/2 * size_mult, ball_coords.y - game_settings.ball_size/2 * size_mult, game_settings.ball_size * size_mult, game_settings.ball_size * size_mult);
 }
@@ -122,6 +123,7 @@ function drawPlayers() {
       var end_vect = convert(obj.bounding_box.x2, obj.bounding_box.y2);
       ctx.fillRect(start_vect.x, start_vect.y, end_vect.x-start_vect.x, end_vect.y-start_vect.y);
     }
+    ctx.fillStyle = game_color;
   }
 }
 

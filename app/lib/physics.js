@@ -63,6 +63,12 @@ Vector2.prototype.multiplyMask = function(vector2) {
   return this;
 }
 
+Vector2.prototype.flip = function() {
+  this.x *= -1;
+  this.y *= -1;
+  return this;
+}
+
 Vector2.prototype.add = function(vector2) {
   this.x += vector2.x;
   this.y += vector2.y;
