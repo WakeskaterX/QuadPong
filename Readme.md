@@ -4,7 +4,7 @@
 
 QuadPong is a four player online pong game, played out on the server & rendered on the client.  The purpose of the project is to practice server side architecture, client synchronization, physics and vector mathematics by making a simple multiplayer game with rooms, etc.
 
-It's still a work in progress, multiplayer has just been added and is still in testing.
+Multiplayer has just been added and is still in testing.
 
 ###Run the Game:
 
@@ -22,7 +22,7 @@ It's still a work in progress, multiplayer has just been added and is still in t
 
 3. Run: `npm install`
 
-4. Run: `node server.js`
+4. Run: `npm start` or `node server.js`
 
 5. Navigate in your browser to: `http://localhost:3000` to play the game!
 
