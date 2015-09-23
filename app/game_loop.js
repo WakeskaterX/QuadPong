@@ -275,6 +275,14 @@ function Game(id_no){
   }
 
   /**
+   * Returns the status
+   * @returns {number} status
+   */
+  this.getStatus = function() {
+    return status;
+  }
+
+  /**
    * Event function - onPoint
    * scores a point against player passed in
    */

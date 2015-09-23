@@ -29,6 +29,25 @@ function handleSocket(io, socket) {
         console.log('Player Reconnecting...');
         var game = games[data.game_id];
         socket.join(gameRoom(game.id));
+        console.log("Checking Game Status: "+game.getStatus());
+        switch (game.getStatus()) {
+          case 0:
+            data.state = "MENU";
+            break;
+          case 1:
+            data.state = "WAITING";
+            break;
+          case 2:
+            data.state = "GAME";
+            break;
+          case 3:
+            data.state = "GAME_END";
+            break;
+          default:
+            data.state = "MENU";
+        }
+        var player_data = game.getAllPlayers();
+        socket.emit('sync_players', getPlayerData(player_data, data.player_id));
         socket.emit('reconnect', data);
         return;
       }
@@ -61,6 +80,7 @@ function handleSocket(io, socket) {
         io.to(gameRoom(game.id)).emit('player_left', {player_num: thisPlayer.playerNum});
         thisPlayer.id = "INVALID";
         players[players.indexOf(data.player_id)] = null;  //TODO: Make this better, setting to null is sort of a hack
+        io.emit('game_list', listGames());
       }
     }
   });
@@ -119,6 +139,7 @@ function handleSocket(io, socket) {
         }
         var player_num = game.addPlayer(player_id);
         socket.emit('joined_game', {'game_id': game_id, 'player_num': player_num, 'players': game_players });
+        io.emit('game_list', listGames());
         io.to(gameRoom(game_id)).emit('added_player', { game_id: game_id, player_num: player_num, player_life: config.game_settings.player_max_life });
       } catch (e) {
         console.log(e);
@@ -141,6 +162,7 @@ function handleSocket(io, socket) {
       try {
         var pid = helper.createComputerID();
         var player_num = game.addComputer(pid);
+        io.emit('game_list', listGames());
         io.to(gameRoom(game.id)).emit('added_computer', { 'game_id': game_id, 'player_num': player_num, 'player_life': config.game_settings.player_max_life });
         console.log('Added Computer Player to Game: '+game_id);
       } catch (e) {
@@ -166,6 +188,7 @@ function handleSocket(io, socket) {
     game.gameSetup(data.player_id);
     socket.emit('game_settings', config.game_settings);
     socket.emit('created_game', { 'game_id': game_id });
+    io.emit('game_list', listGames());
     socket.join(gameRoom(game.id));
   });
 
@@ -223,6 +246,24 @@ function listGames() {
     g.push(item);
   }
   return g;
+}
+
+/**
+ * Remove Unneeded fields from players
+ */
+function getPlayerData(player_data, player_id) {
+  var data = {};
+  for (var p in player_data) {
+    var player = player_data[p];
+    if (player) {
+      data[p] = {};
+      data[p].playerNum = player.playerNum;
+      data[p].is_self = player_id === player.playerID ? true : false;
+      data[p].is_computer = player.is_computer;
+      data[p].life = player.life;
+    }
+  }
+  return data;
 }
 
 /**

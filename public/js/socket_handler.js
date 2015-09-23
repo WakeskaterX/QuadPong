@@ -72,7 +72,7 @@ socket.on('game_settings', function(data) {
 function create_game() {
   socket.emit('create_game', {'player_id': player_id});
   player_num = 1;
-  add_player("Human",{ player_num: 1, player_life: 1 });
+  add_player("Human",{ player_num: 1, life: 1 });
 }
 
 /**
@@ -103,7 +103,7 @@ socket.on('joined_game', function(data) {
     var player = players[item];
     add_player(player.type, player);
   }
-  add_player('Human', { player_num: data.player_num, player_life: 0 });
+  add_player('Human', { player_num: data.player_num, life: 0 });
   STATE = states.WAITING;
   save_data();
 });
@@ -129,6 +129,29 @@ socket.on('added_player', function(data) {
  */
 socket.on('game_list', function(data) {
   game_list = data;
+  updateCanvas();
+});
+
+/**
+ * Sync Players in a game to our saved players
+ */
+socket.on('sync_players', function(player_data) {
+  var players = 0;
+  for (var id in player_data) {
+    var player = player_data[id];
+    console.log("Player ID: "+id+" and player: "+JSON.stringify(player));
+    if (player) {
+      players++;
+      PlayerData[id] = {
+        player_num: player.playerNum,
+        type: player.is_computer ? "Computer" : "Human",
+        life: player.life,
+        is_self: player.is_self ? true : false
+      };
+    }
+  }
+  players_in_game = players;
+  update_player_list();
 });
 
 /**
@@ -164,7 +187,7 @@ function add_player(player_type, data){
       player_num: data.player_num,
       is_self: data.player_num === player_num ? true : false,
       type: player_type,
-      player_life: data.player_life || 0
+      life: data.life || 0
     }
   }
   update_player_list();
@@ -222,10 +245,10 @@ function update_player_list(){
       var p = PlayerData[pid];
       if (p) {
         var row = document.createElement('tr');
-        var row_data = "<th>Player "+p.player_num+"</th><td>"+p.type+"</td><td>"+p.player_life+"</td><td>"+p.is_self.toString()+"</td>";
+        var row_data = "<th>Player "+p.player_num+"</th><td>"+p.type+"</td><td>"+p.life+"</td><td>"+p.is_self.toString()+"</td>";
         row.innerHTML = row_data;
         $("#players tbody").append(row);
-        if (p.player_life < 1) {
+        if (p.life < 1) {
           row.setAttribute("style","color:red;");
         }
       }
@@ -251,7 +274,7 @@ function extract_player_data(data){
       var p = data[item];
       player_data[item] = {
         player_num: p.playerNum,
-        player_life: p.life,
+        life: p.life,
         type: p.is_computer ? "Computer":"Human",
         is_self: p.playerNum === player_num ? true : false
       }

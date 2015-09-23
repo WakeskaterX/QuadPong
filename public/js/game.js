@@ -18,7 +18,7 @@ var PlayerData = {
  * PlayerData Format:
  * p1: {
  *   player_num: 1,
- *   player_life: 2,
+ *   life: 2,
  *   is_self: true,
  *   type: "Human"
  * }
@@ -120,6 +120,8 @@ function drawMenu() {
   ctx.font = "small-caps 400 24px Arial";
   ctx.fillText("Create New Game",canvas_width/2,400);
   ctx.fillText("Join Existing Game", canvas_width/2, 460);
+  ctx.font = "small-caps 300 16px Arial";
+  ctx.fillText("Open Games: "+numberOfOpenGames(), canvas_width/2, 500);
   ctx.strokeStyle = game_color;
   if (LOBBY_SELECT === 0) {
     ctx.strokeRect(canvas_width/2 - 150, 372, 300, 40);
@@ -310,4 +312,15 @@ function playerAction(dir) {
     console.log("Emitting Action "+dir);
     socket.emit("action", data); 
   }
+}
+
+/**
+ * List number of open games
+ */
+function numberOfOpenGames(){
+  var num = 0;
+  for (var i = 0; i < game_list.length; i++) {
+    if (game_list[i].number_slots > 0) num++;
+  }
+  return num;
 }
